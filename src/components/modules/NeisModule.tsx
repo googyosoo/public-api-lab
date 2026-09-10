@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Utensils, Calendar, Clock, BookOpen, Search, CheckCircle } from 'lucide-react';
+import { Utensils, Calendar, Clock, BookOpen, Search, CheckCircle, AlertTriangle } from 'lucide-react';
 import { NEIS_PRESETS } from '../../data/mockData';
 import { ApiService } from '../../services/apiService';
 import { ParsedNeisData, ApiInspectionData } from '../../types/api';
@@ -14,11 +14,20 @@ export const NeisModule: React.FC<NeisModuleProps> = ({ isLive, liveKey, onInspe
   const [selectedSchool, setSelectedSchool] = useState<string>('심인고등학교');
   const [neisData, setNeisData] = useState<ParsedNeisData>(NEIS_PRESETS['심인고등학교'].data);
   const [activeSubTab, setActiveSubTab] = useState<'meal' | 'schedule' | 'timetable'>('meal');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const loadNeis = async (school: string) => {
-    const result = await ApiService.fetchNeis(school, liveKey, isLive);
-    setNeisData(result.data);
-    onInspected(result.inspect);
+    setErrorMessage(null);
+    try {
+      const result = await ApiService.fetchNeis(school, liveKey, isLive);
+      setNeisData(result.data);
+      if (result.error) {
+        setErrorMessage(result.error);
+      }
+      onInspected(result.inspect);
+    } catch (err: any) {
+      setErrorMessage(`나이스 통신 실패: ${err?.message || err}`);
+    }
   };
 
   useEffect(() => {
@@ -61,6 +70,19 @@ export const NeisModule: React.FC<NeisModuleProps> = ({ isLive, liveKey, onInspe
           </div>
         </div>
       </div>
+
+      {/* 실시간 통신 실패 / API 키 미등록 경고 배너 */}
+      {errorMessage && (
+        <div className="bg-bauhaus-red text-white p-4 border-2 border-bauhaus-black b-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 font-mono text-xs md:text-sm font-bold">
+            <AlertTriangle className="w-5 h-5 text-bauhaus-yellow shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          <span className="text-[10px] font-mono bg-black/40 px-2 py-1 border border-white/30 uppercase self-start sm:self-auto">
+            NEIS NETWORK STATUS
+          </span>
+        </div>
+      )}
 
       {/* 내부 기능 서브 탭 (급식 / 학사일정 / 시간표) */}
       <div className="flex border-2 border-bauhaus-black bg-white b-shadow-sm">

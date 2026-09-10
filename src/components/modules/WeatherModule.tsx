@@ -14,13 +14,23 @@ export const WeatherModule: React.FC<WeatherModuleProps> = ({ isLive, liveKey, o
   const [selectedRegion, setSelectedRegion] = useState<string>('대구 북구 읍내동');
   const [weatherData, setWeatherData] = useState<ParsedWeather>(WEATHER_PRESETS['대구 북구 읍내동'].data);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const loadWeather = async (region: string) => {
     setLoading(true);
-    const result = await ApiService.fetchWeather(region, liveKey, isLive);
-    setWeatherData(result.data);
-    onInspected(result.inspect);
-    setLoading(false);
+    setErrorMessage(null);
+    try {
+      const result = await ApiService.fetchWeather(region, liveKey, isLive);
+      setWeatherData(result.data);
+      if (result.error) {
+        setErrorMessage(result.error);
+      }
+      onInspected(result.inspect);
+    } catch (err: any) {
+      setErrorMessage(`기상청 통신 실패: ${err?.message || err}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -63,6 +73,19 @@ export const WeatherModule: React.FC<WeatherModuleProps> = ({ isLive, liveKey, o
           </div>
         </div>
       </div>
+
+      {/* 실시간 통신 실패 / API 키 미등록 경고 배너 */}
+      {errorMessage && (
+        <div className="bg-bauhaus-red text-white p-4 border-2 border-bauhaus-black b-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 font-mono text-xs md:text-sm font-bold">
+            <AlertTriangle className="w-5 h-5 text-bauhaus-yellow shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          <span className="text-[10px] font-mono bg-black/40 px-2 py-1 border border-white/30 uppercase self-start sm:self-auto">
+            LIVE NETWORK STATUS
+          </span>
+        </div>
+      )}
 
       {/* 우천 경보 배너 (API 조건부 렌더링) */}
       {weatherData.rainProb >= 60 && (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Moon, Sunrise, Sunset, Calendar, Clock, Sparkles } from 'lucide-react';
+import { Moon, Sunrise, Sunset, Calendar, Clock, Sparkles, AlertTriangle } from 'lucide-react';
 import { ASTRO_DATA } from '../../data/mockData';
 import { ApiService } from '../../services/apiService';
 import { AstroData, ApiInspectionData } from '../../types/api';
@@ -13,11 +13,20 @@ interface AstroModuleProps {
 export const AstroModule: React.FC<AstroModuleProps> = ({ isLive, liveKey, onInspected }) => {
   const [astroData, setAstroData] = useState<AstroData>(ASTRO_DATA);
   const [targetDays, setTargetDays] = useState<number>(3);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const loadAstro = async () => {
-    const result = await ApiService.fetchAstro(liveKey);
-    setAstroData(result.data);
-    onInspected(result.inspect);
+    setErrorMessage(null);
+    try {
+      const result = await ApiService.fetchAstro(liveKey);
+      setAstroData(result.data);
+      if (result.error) {
+        setErrorMessage(result.error);
+      }
+      onInspected(result.inspect);
+    } catch (err: any) {
+      setErrorMessage(`천문연구원 통신 오류: ${err?.message || err}`);
+    }
   };
 
   useEffect(() => {
@@ -40,6 +49,19 @@ export const AstroModule: React.FC<AstroModuleProps> = ({ isLive, liveKey, onIns
           </p>
         </div>
       </div>
+
+      {/* 실시간 통신 실패 / API 키 미등록 경고 배너 */}
+      {errorMessage && (
+        <div className="bg-bauhaus-red text-white p-4 border-2 border-bauhaus-black b-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 font-mono text-xs md:text-sm font-bold">
+            <AlertTriangle className="w-5 h-5 text-bauhaus-yellow shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          <span className="text-[10px] font-mono bg-black/40 px-2 py-1 border border-white/30 uppercase self-start sm:self-auto">
+            KASI NETWORK STATUS
+          </span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* 천체 출몰 & 월령 뷰포트 (좌측 6칸) */}

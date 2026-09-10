@@ -38,11 +38,11 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="text-neutral-400">· FORM FOLLOWS FUNCTION</span>
         </div>
         <div className="flex items-center gap-4 text-[11px] text-neutral-300">
-          <span className="flex items-center gap-1">
-            <span className={`w-2 h-2 rounded-full inline-block ${isLive ? 'bg-bauhaus-green animate-pulse' : 'bg-bauhaus-yellow'}`}></span>
-            {isLive ? 'LIVE NETWORK ENGINE' : 'SIMULATION MOCK ENGINE'}
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full inline-block bg-bauhaus-green animate-pulse"></span>
+            <span className="text-white font-bold">100% REAL-TIME LIVE NETWORK ENGINE</span>
           </span>
-          <span>DATA.GO.KR COMPATIBLE</span>
+          <span>DATA.GO.KR & KAKAO COMPATIBLE</span>
         </div>
       </div>
 
@@ -70,28 +70,15 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* 우측 컨트롤 도구: 모드 토글 & 키 보관소 */}
+        {/* 우측 컨트롤 도구: 100% 실시간 모드 & 키 보관소 */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* 모드 스위처 */}
-          <div className="flex items-center border-2 border-bauhaus-black bg-white p-0.5 b-shadow-sm">
-            <button
-              onClick={() => onToggleLive(false)}
-              className={`px-3 py-1.5 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors ${
-                !isLive ? 'bg-bauhaus-yellow text-bauhaus-black' : 'text-neutral-500 hover:text-bauhaus-black'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>시뮬레이션 (키 불필요)</span>
-            </button>
-            <button
-              onClick={() => onToggleLive(true)}
-              className={`px-3 py-1.5 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors ${
-                isLive ? 'bg-bauhaus-green text-white' : 'text-neutral-500 hover:text-bauhaus-black'
-              }`}
-            >
-              <Activity className="w-3.5 h-3.5" />
-              <span>라이브 실시간 통신</span>
-            </button>
+          {/* 100% 실시간 통신 엔진 가동 인디케이터 */}
+          <div className="flex items-center gap-2 border-2 border-bauhaus-black bg-white px-3 py-1.5 b-shadow-sm">
+            <span className="w-2.5 h-2.5 rounded-full bg-bauhaus-green animate-pulse inline-block"></span>
+            <span className="text-xs font-mono font-bold text-bauhaus-black flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-bauhaus-green" />
+              <span>LIVE 100% 실시간 통신 가동 중</span>
+            </span>
           </div>
 
           {/* 키 관리 모달 열기 버튼 */}

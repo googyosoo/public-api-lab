@@ -2,23 +2,35 @@ import { ApiKeyStore } from '../types/api';
 
 const STORAGE_KEY = 'BAUHAUS_API_LAB_KEYS_V1';
 
+const ENV = (import.meta as any).env || {};
+
 const DEFAULT_KEYS: ApiKeyStore = {
-  kmaKey: '',
-  neisKey: '',
-  airKey: '',
-  kasiKey: '',
-  nlKey: '',
-  webhookUrl: '',
-  kakaoKey: '',
-  geminiKey: ''
+  kmaKey: ENV.VITE_KMA_KEY || '',
+  neisKey: ENV.VITE_NEIS_KEY || '',
+  airKey: ENV.VITE_AIR_KEY || '',
+  kasiKey: ENV.VITE_KASI_KEY || '',
+  nlKey: ENV.VITE_NL_KEY || '',
+  webhookUrl: ENV.VITE_DISCORD_WEBHOOK_URL || '',
+  kakaoKey: ENV.VITE_KAKAO_KEY || '',
+  geminiKey: ENV.VITE_GEMINI_KEY || ''
 };
 
 export const KeyVault = {
-  // 모든 키 불러오기
+  // 모든 키 불러오기 (환경변수 기본값 + 로컬스토리지 융합)
   getKeys(): ApiKeyStore {
     try {
       const item = localStorage.getItem(STORAGE_KEY);
-      return item ? { ...DEFAULT_KEYS, ...JSON.parse(item) } : DEFAULT_KEYS;
+      const saved = item ? JSON.parse(item) : {};
+      return {
+        kmaKey: saved.kmaKey || DEFAULT_KEYS.kmaKey,
+        neisKey: saved.neisKey || DEFAULT_KEYS.neisKey,
+        airKey: saved.airKey || DEFAULT_KEYS.airKey,
+        kasiKey: saved.kasiKey || DEFAULT_KEYS.kasiKey,
+        nlKey: saved.nlKey || DEFAULT_KEYS.nlKey,
+        webhookUrl: saved.webhookUrl || DEFAULT_KEYS.webhookUrl,
+        kakaoKey: saved.kakaoKey || DEFAULT_KEYS.kakaoKey,
+        geminiKey: saved.geminiKey || DEFAULT_KEYS.geminiKey,
+      };
     } catch {
       return DEFAULT_KEYS;
     }
@@ -43,7 +55,7 @@ export const KeyVault = {
 
   // 마스킹 처리 (앞 4글자, 뒤 3글자 노출)
   maskKey(key: string): string {
-    if (!key) return '(키 미등록 - 시뮬레이션 모드로 동작)';
+    if (!key) return '(키 미등록 - 실제 API 인증키 필요)';
     if (key.length <= 8) return '••••••••';
     return `${key.slice(0, 4)}••••${key.slice(-3)}`;
   },

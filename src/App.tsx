@@ -15,7 +15,7 @@ import { ApiCategory, ApiInspectionData, ApiKeyStore } from './types/api';
 
 export const App: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<ApiCategory>('kma');
-  const [isLive, setIsLive] = useState<boolean>(false);
+  const [isLive, setIsLive] = useState<boolean>(true);
   const [isKeyModalOpen, setIsKeyModalOpen] = useState<boolean>(false);
   const [keys, setKeys] = useState<ApiKeyStore>(KeyVault.getKeys());
   const [currentInspection, setCurrentInspection] = useState<ApiInspectionData | null>(null);

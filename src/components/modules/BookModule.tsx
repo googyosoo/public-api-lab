@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ExternalLink, Building2, Tag } from 'lucide-react';
+import { Search, ExternalLink, Building2, Tag, AlertTriangle } from 'lucide-react';
 import { BOOK_SEARCH_PRESET } from '../../data/mockData';
 import { ApiService } from '../../services/apiService';
 import { BookSearchItem, ApiInspectionData } from '../../types/api';
@@ -19,17 +19,22 @@ export const BookModule: React.FC<BookModuleProps> = ({
 }) => {
   const [query, setQuery] = useState<string>('바우하우스');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'kakao' | 'nl'>('all');
-  const [books, setBooks] = useState<BookSearchItem[]>(BOOK_SEARCH_PRESET);
+  const [books, setBooks] = useState<BookSearchItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const searchBooks = async (q: string, src: 'all' | 'kakao' | 'nl') => {
     setLoading(true);
+    setErrorMessage(null);
     try {
       const result = await ApiService.fetchBooks(q, src, kakaoKey, nlKey, isLive);
       setBooks(result.data);
+      if (result.error) {
+        setErrorMessage(result.error);
+      }
       onInspected(result.inspect);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setErrorMessage(`도서 검색 오류: ${err?.message || err}`);
     } finally {
       setLoading(false);
     }
@@ -122,6 +127,19 @@ export const BookModule: React.FC<BookModuleProps> = ({
         </div>
       </div>
 
+      {/* 실시간 통신 실패 / API 키 미등록 경고 배너 */}
+      {errorMessage && (
+        <div className="bg-bauhaus-red text-white p-4 border-2 border-bauhaus-black b-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 font-mono text-xs md:text-sm font-bold">
+            <AlertTriangle className="w-5 h-5 text-bauhaus-yellow shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          <span className="text-[10px] font-mono bg-black/40 px-2 py-1 border border-white/30 uppercase self-start sm:self-auto">
+            BOOK SEARCH STATUS
+          </span>
+        </div>
+      )}
+
       {/* 엔진 상태 및 KDC / 서지 메타 브리핑 바 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
         <div className="border-2 border-bauhaus-black p-3 bg-white b-shadow-sm flex items-center gap-3">
@@ -131,7 +149,7 @@ export const BookModule: React.FC<BookModuleProps> = ({
           <div>
             <div className="font-bold text-bauhaus-black">카카오 REST API v3</div>
             <div className="text-[11px] text-neutral-500">
-              {kakaoKey ? '키 등록됨 (실시간 통신 가능)' : '시뮬레이션 / 키 입력 시 Live'}
+              {kakaoKey ? '키 등록됨 (실시간 통신 연동)' : '키 미등록 (카카오 REST 키 필요)'}
             </div>
           </div>
         </div>

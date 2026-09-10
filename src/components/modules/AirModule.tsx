@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wind, Activity, CheckCircle, AlertCircle, ShieldCheck, Gauge } from 'lucide-react';
+import { Wind, Activity, CheckCircle, AlertCircle, ShieldCheck, Gauge, AlertTriangle } from 'lucide-react';
 import { AIR_PRESETS } from '../../data/mockData';
 import { ApiService } from '../../services/apiService';
 import { AirQualityData, ApiInspectionData } from '../../types/api';
@@ -13,11 +13,20 @@ interface AirModuleProps {
 export const AirModule: React.FC<AirModuleProps> = ({ isLive, liveKey, onInspected }) => {
   const [selectedStation, setSelectedStation] = useState<string>('대구 북구 읍내동');
   const [airData, setAirData] = useState<AirQualityData>(AIR_PRESETS['대구 북구 읍내동'].data);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const loadAir = async (station: string) => {
-    const result = await ApiService.fetchAir(station, liveKey, isLive);
-    setAirData(result.data);
-    onInspected(result.inspect);
+    setErrorMessage(null);
+    try {
+      const result = await ApiService.fetchAir(station, liveKey, isLive);
+      setAirData(result.data);
+      if (result.error) {
+        setErrorMessage(result.error);
+      }
+      onInspected(result.inspect);
+    } catch (err: any) {
+      setErrorMessage(`에어코리아 통신 오류: ${err?.message || err}`);
+    }
   };
 
   useEffect(() => {
@@ -60,6 +69,19 @@ export const AirModule: React.FC<AirModuleProps> = ({ isLive, liveKey, onInspect
           </div>
         </div>
       </div>
+
+      {/* 실시간 통신 실패 / API 키 미등록 경고 배너 */}
+      {errorMessage && (
+        <div className="bg-bauhaus-red text-white p-4 border-2 border-bauhaus-black b-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 font-mono text-xs md:text-sm font-bold">
+            <AlertTriangle className="w-5 h-5 text-bauhaus-yellow shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          <span className="text-[10px] font-mono bg-black/40 px-2 py-1 border border-white/30 uppercase self-start sm:self-auto">
+            AIR KOREA NETWORK STATUS
+          </span>
+        </div>
+      )}
 
       {/* 2단 그리드: 바우하우스 신호등 (좌) + 야외활동 판정 배지 & 수치 (우) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
