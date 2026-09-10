@@ -5,13 +5,13 @@ const STORAGE_KEY = 'BAUHAUS_API_LAB_KEYS_V1';
 const ENV = (import.meta as any).env || {};
 
 const DEFAULT_KEYS: ApiKeyStore = {
-  kmaKey: ENV.VITE_KMA_KEY || '',
-  neisKey: ENV.VITE_NEIS_KEY || '',
-  airKey: ENV.VITE_AIR_KEY || '',
-  kasiKey: ENV.VITE_KASI_KEY || '',
-  nlKey: ENV.VITE_NL_KEY || '',
+  kmaKey: ENV.VITE_KMA_KEY || 'b%2BCyVpC58a2hFGho34vflH5YO0%2F0fWeNb0xO2r%2FMTx1erJXlBXFxkpDg8y7GfL0YtZQmu43w9RFwtuscLv7fcQ%3D%3D',
+  neisKey: ENV.VITE_NEIS_KEY || 'df916e24d7174474998b7e50707c841e',
+  airKey: ENV.VITE_AIR_KEY || 'b%2BCyVpC58a2hFGho34vflH5YO0%2F0fWeNb0xO2r%2FMTx1erJXlBXFxkpDg8y7GfL0YtZQmu43w9RFwtuscLv7fcQ%3D%3D',
+  kasiKey: ENV.VITE_KASI_KEY || 'b%2BCyVpC58a2hFGho34vflH5YO0%2F0fWeNb0xO2r%2FMTx1erJXlBXFxkpDg8y7GfL0YtZQmu43w9RFwtuscLv7fcQ%3D%3D',
+  nlKey: ENV.VITE_NL_KEY || '9cbae0b900d62767e4be4ab30a850abd33c7f640a22d7d3e4095eb2b68d0cb73',
   webhookUrl: ENV.VITE_DISCORD_WEBHOOK_URL || '',
-  kakaoKey: ENV.VITE_KAKAO_KEY || '',
+  kakaoKey: ENV.VITE_KAKAO_KEY || '6958dfb0128de91294f6f8116cda8db1',
   geminiKey: ENV.VITE_GEMINI_KEY || ''
 };
 
