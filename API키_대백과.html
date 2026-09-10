@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<!-- 도키피디아 | apikey | v1.2 | https://dorms.school/board/p/1c238d0a-c453-4456-8bb5-ca4634c930a9 -->
+<html lang="ko" data-doki="apikey-v1.2">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API키 대백과 — 종류·발급·요금</title>
+<meta name="description" content="API 키의 종류, 발급 방법, 요금 구조와 유출 방지 수칙을 분류별로 정리. 도키피디아.">
+<meta name="author" content="도쌤">
+<meta name="source" content="https://dorms.school/board/p/1c238d0a-c453-4456-8bb5-ca4634c930a9">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ═══════════ 도키피디아 공통 레이어 (design/dokipedia.css) ═══════════ */
+/* ============================================================
+   도키피디아 — 대백과 시리즈 공통 레이어
+   기준: API키 대백과의 토큰 체계 + 깃허브 대백과의 문서 셸
+
+   이 파일은 링크되지 않는다. 각 문서의 <style> 최상단에
+   그대로 붙여넣고, 문서 고유 컴포넌트는 그 아래에 둔다.
+   (첨부는 반드시 단일 HTML이어야 하므로 외부 CSS를 쓸 수 없다)
+   ============================================================ */
+
+/* ---------- 1. 토큰 ---------- */
+:root{
+  /* 지면 */
+  --bg:#F4F6F9; --surface:#FFFFFF; --surface-2:#FBFCFE;
+  --ink:#1C2733; --ink-soft:#49586A; --muted:#66717F;
+  --line:#E2E7EE; --line-soft:#EDF1F6;
+
+  /* 시리즈 공용 액센트 — 흰 바탕에서 본문 대비 AA를 넘는 값만 쓴다 */
+  --a-teal:#0E7C7B; --a-violet:#6C4AB6; --a-green:#2E7D32; --a-orange:#D96C06;
+  --a-magenta:#C2185B; --a-blue:#1565C0; --a-brown:#5D4037;
+
+  /* 섹션 액센트: 섹션마다 --sec 을 갈아끼우면 하위 컴포넌트가 전부 따라온다 */
+  --sec:var(--a-blue);
+
+  /* 상태색 */
+  --warn:#D96C06; --warn-bg:#FFF8EF; --warn-line:#F1DCC0; --warn-ink:#7A4A08;
+  --danger:#A8352A; --danger-bg:#FDE7E4; --danger-line:#F3C0BA;
+  --ok:#0E7C7B; --ok-bg:#E9F5F4; --ok-line:#BFDDDB;
+
+  /* 글꼴 */
+  --sans:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,
+         "Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono","Cascadia Code","D2Coding",Consolas,monospace;
+
+  /* 치수 */
+  --r:10px; --side-w:264px; --content-w:780px;
+}
+
+/* ---------- 2. 리셋·본문 ---------- */
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:80px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.75;word-break:keep-all;overflow-x:hidden}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{animation:none!important;transition:none!important}
+}
+:focus-visible{outline:2px solid var(--sec);outline-offset:2px}
+
+/* ---------- 3. 문서 셸 ---------- */
+.shell{display:flex;min-height:100vh}
+.side{width:var(--side-w);flex:0 0 var(--side-w);background:#EDEFF3;
+  border-right:1px solid var(--line);position:sticky;top:0;height:100vh;
+  overflow-y:auto;padding:28px 20px 60px}
+.main{flex:1;min-width:0;padding:0 24px 120px}
+.wrap{max-width:var(--content-w);margin:0 auto}
+
+.brand{font-weight:800;font-size:15px;letter-spacing:-.02em;line-height:1.4}
+.brand span{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-top:6px}
+.toc{list-style:none;padding:0;margin:22px 0 0}
+.toc a{display:flex;gap:9px;align-items:baseline;text-decoration:none;color:var(--ink-soft);
+  padding:7px 10px;border-radius:7px;font-size:13.5px;line-height:1.45}
+.toc a:hover{background:#E3E7ED;color:var(--ink)}
+.toc a.on{background:var(--ink);color:#fff}
+.toc a.on .n{color:#fff}
+.toc .n{font-family:var(--mono);font-size:11px;color:var(--ink-soft);flex:0 0 22px}
+.sidenote{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
+  font-size:11.5px;line-height:1.6;color:var(--ink-soft)}
+
+.topbar{display:none}
+.scrim{display:none}
+@media (max-width:1023px){
+  .side{display:none;position:fixed;top:0;left:0;z-index:60;width:min(300px,86vw);
+    flex:none;box-shadow:0 0 60px rgba(0,0,0,.25)}
+  .side.open{display:block}
+  .main{padding:0 18px 100px}
+  .scrim{position:fixed;inset:0;background:rgba(28,39,51,.5);z-index:55}
+  .scrim.open{display:block}
+  .topbar{display:flex;position:sticky;top:0;z-index:50;margin:0 -18px;padding:9px 16px;
+    align-items:center;justify-content:space-between;gap:10px;
+    background:rgba(244,246,249,.94);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line)}
+  .topbar .tt{font-size:13px;font-weight:800;letter-spacing:-.02em;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topbar button{background:var(--ink);color:#fff;border:0;border-radius:999px;
+    padding:7px 14px;font-family:var(--sans);font-size:12.5px;font-weight:700;
+    cursor:pointer;flex:0 0 auto}
+}
+
+/* ---------- 4. 히어로·섹션 타이포 ---------- */
+.hero{padding:60px 0 30px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--muted);
+  text-transform:uppercase;margin:0 0 16px}
+h1{font-size:clamp(30px,6.4vw,46px);line-height:1.18;letter-spacing:-.035em;
+  font-weight:800;margin:0 0 18px}
+.lede{font-size:17px;color:var(--ink-soft);margin:0;max-width:640px}
+.stamp{display:inline-flex;flex-wrap:wrap;gap:6px 14px;margin-top:22px;font-size:11.5px;
+  color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:5px 10px}
+
+section{padding:52px 0;border-bottom:1px solid var(--line)}
+.pt{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;color:var(--sec);margin:0 0 10px}
+h2{font-size:clamp(23px,4.4vw,30px);line-height:1.3;letter-spacing:-.03em;font-weight:800;margin:0 0 12px}
+h3{font-size:17.5px;font-weight:800;letter-spacing:-.02em;margin:34px 0 10px;line-height:1.45}
+h4{font-size:14.5px;font-weight:800;margin:22px 0 8px}
+p{margin:0 0 14px}
+a{color:var(--sec)}
+code,.mono{font-family:var(--mono)}
+
+/* ---------- 5. 크레딧 / 워터마크 ---------- */
+/* 헤더 배지 — 시리즈 표식 + 버전 */
+.doki-mark{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);
+  font-size:11px;letter-spacing:.06em;color:var(--muted)}
+.doki-mark b{color:var(--sec);font-weight:700}
+.doki-mark .v{border:1px solid var(--line);border-radius:99px;padding:1px 8px}
+
+/* 푸터 크레딧 — 출처·버전·원본 링크 */
+.doki-credit{margin-top:48px;padding:22px 0 40px;border-top:1px solid var(--line);
+  font-size:13px;line-height:1.7;color:var(--muted)}
+.doki-credit .who{font-weight:800;color:var(--ink)}
+.doki-credit a{color:var(--sec);word-break:break-all}
+.doki-credit dl{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin:10px 0 0}
+.doki-credit dt{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.doki-credit dd{margin:0;color:var(--ink-soft)}
+
+/* 인쇄물·PDF로 뽑아도 출처가 남는다 */
+@media print{
+  .side,.topbar,.scrim{display:none!important}
+  .main{padding:0}
+  body{background:#fff;font-size:11pt}
+  .doki-credit{break-inside:avoid;border-top:1px solid #999;color:#333}
+  .doki-credit a::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
+}
+
+/* ═══════════ API키 대백과 고유 ═══════════ */
+:root{
+  --content-w:1032px;
+  /* 분류별 액센트 — 시리즈 공용 팔레트에 이름만 붙인다 */
+  --c-pub:var(--a-teal); --c-ai:var(--a-violet); --c-map:var(--a-green); --c-msg:var(--a-orange);
+  --c-media:var(--a-magenta); --c-db:var(--a-blue); --c-util:var(--a-brown);
+  --sec:var(--c-db);
+}
+.wrap{max-width:var(--content-w);margin:0 auto;padding:0 24px}
+
+/* ── 히어로: .env 파일 콘셉트 ── */
+header{background:#101820;color:#E8EDF3;padding:64px 0 56px}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.12em;color:#7BE0C8;margin-bottom:14px}
+h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1.2}
+h1 .thin{font-weight:300;color:#9AA7B5}
+.lede{margin-top:16px;max-width:620px;color:#B7C2CE;font-size:16px}
+.envfile{margin-top:36px;background:#0B1118;border:1px solid #223041;border-radius:10px;overflow:hidden}
+.envfile .bar{display:flex;align-items:center;gap:8px;padding:9px 14px;background:#152030;border-bottom:1px solid #223041;font-family:var(--mono);font-size:12px;color:#8FA0B3}
+.envfile .bar i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.envfile pre{padding:16px 18px;font-family:var(--mono);font-size:13px;line-height:1.75;white-space:pre-wrap;word-break:break-word}
+.envfile a{padding:5px 0}
+.envfile a{text-decoration:none;display:block;color:inherit}
+.envfile a:hover .k{text-decoration:underline}
+.env-c{color:#5C6B7C}
+.k{font-weight:700}
+.v{color:#7C8DAA}
+.eq{color:#5C6B7C}
+.val{color:#93A8C0}
+
+/* ── 본문 공통 ── */
+main{padding:56px 0 80px}
+.section{margin-bottom:72px}
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;border-bottom:3px solid var(--sec);padding-bottom:10px;margin-bottom:8px}
+.sec-head h2{font-size:26px;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
+.sec-head .tag{font-family:var(--mono);font-size:12px;color:var(--sec);letter-spacing:.08em}
+.sec-desc{color:var(--muted);font-size:14.5px;margin-bottom:26px;max-width:720px}
+
+/* API 항목 카드 */
+.api{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--sec);border-radius:12px;padding:26px 28px;margin-bottom:26px;box-shadow:0 1px 2px rgba(16,24,32,.05)}
+.api-top{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.api h3{font-size:20px;font-weight:800}
+.api .from{font-size:13px;color:var(--muted);margin-top:2px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.meta span{font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:3px 10px;color:#49586A}
+.meta b{color:var(--sec)}
+/* 키 카드 (시그니처) */
+.keywrap{display:flex;flex-direction:column;align-items:flex-start;gap:0;flex-shrink:0}
+.keycard{min-width:250px;background:linear-gradient(135deg,#141C26,#22303F);color:#DCE5EF;border-radius:10px;padding:12px 16px;position:relative;overflow:hidden;flex-shrink:0}
+.keycard::after{content:"";position:absolute;right:-24px;top:-24px;width:80px;height:80px;border-radius:50%;background:var(--sec);opacity:.35}
+.keycard .kc-l{font-size:10.5px;letter-spacing:.14em;color:#8FA0B3;font-family:var(--mono)}
+.keycard .kc-v{font-family:var(--mono);font-size:13px;margin-top:3px}
+.keycard .kc-f{font-size:11px;color:#9FB0C2;margin-top:7px}
+.uses{margin-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:18px}
+.use{border:1px solid var(--line);border-radius:10px;padding:16px 16px 18px;background:#FBFCFE;display:flex;flex-direction:column}
+.use h4{font-size:15px;font-weight:700;margin-bottom:5px}
+.use h4 .no{font-family:var(--mono);font-size:11px;color:var(--sec);margin-right:6px}
+.use p{font-size:13px;color:#4C5A69;margin-bottom:14px}
+
+/* ── 미니 목업 (브라우저 프레임) ── */
+.mock{margin-top:auto;background:#EDF1F6;border:1px solid #D6DEE8;border-radius:8px;overflow:hidden;font-size:11px}
+.mock .mb{display:flex;gap:5px;align-items:center;padding:6px 9px;background:#DDE4EC;border-bottom:1px solid #CBD5E1}
+.mock .mb i{width:7px;height:7px;border-radius:50%;background:#B6C2D0;display:inline-block}
+.mock .url{flex:1;background:#fff;border-radius:4px;font-family:var(--mono);font-size:9px;color:#8A97A6;padding:1px 8px;margin-left:4px}
+.mbody{padding:10px;position:relative;min-height:110px}
+.m-nav{height:14px;background:#fff;border-radius:4px;margin-bottom:8px;display:flex;align-items:center;gap:6px;padding:0 7px}
+.m-nav i{width:26px;height:4px;background:#C9D3DF;border-radius:2px}
+.m-nav i:first-child{width:14px;background:#9AA9BA}
+.sk{background:#D9E0E9;border-radius:3px}
+.m-line{height:6px;margin-bottom:5px}
+.hl{outline:2px dashed var(--sec);outline-offset:3px;border-radius:6px;position:relative}
+.hl-tag{position:absolute;top:-9px;right:-2px;background:var(--sec);color:#fff;font-size:9px;font-weight:700;padding:1px 7px;border-radius:99px;z-index:3;letter-spacing:.02em}
+.wg{background:#fff;border-radius:6px;padding:8px;box-shadow:0 1px 2px rgba(16,24,32,.08)}
+.wg .t{font-weight:800;font-size:11px}
+.wg .s{color:#7B8899;font-size:9.5px}
+.big{font-size:19px;font-weight:800}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.row{display:flex;gap:7px;align-items:center}
+.chip{background:#EEF2F7;border-radius:99px;font-size:9px;padding:1px 7px;color:#5A6878}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.m-btn{display:inline-block;background:var(--sec);color:#fff;font-size:9.5px;font-weight:700;border-radius:5px;padding:3px 9px}
+.m-btn.ghost{background:#fff;color:var(--sec);border:1px solid var(--sec)}
+.m-input{background:#fff;border:1px solid #C9D3DF;border-radius:5px;height:18px;display:flex;align-items:center;padding:0 7px;color:#98A5B4;font-size:9px}
+.fab{position:absolute;right:10px;bottom:10px;width:30px;height:30px;border-radius:50%;background:var(--sec);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 3px 8px rgba(16,24,32,.25)}
+.bubble{background:#fff;border-radius:8px 8px 8px 2px;padding:5px 8px;font-size:9.5px;max-width:78%;box-shadow:0 1px 2px rgba(16,24,32,.08)}
+.bubble.me{background:var(--sec);color:#fff;border-radius:8px 8px 2px 8px;margin-left:auto}
+.m-map{height:64px;border-radius:6px;background:
+ repeating-linear-gradient(0deg,#DCE7DA 0 14px,#D2DFCF 14px 15px),
+ repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.5) 22px 23px);position:relative}
+.pin{position:absolute;width:10px;height:10px;background:var(--sec);border:2px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg)}
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.thumb{aspect-ratio:16/10;border-radius:4px;background:linear-gradient(135deg,#C4CFDC,#AAB8C8);position:relative}
+.thumb::after{content:"▶";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px}
+.bar-h{display:flex;align-items:flex-end;gap:5px;height:44px}
+.bar-h i{flex:1;background:var(--sec);opacity:.75;border-radius:3px 3px 0 0}
+.tbl{width:100%;border-collapse:collapse;background:#fff;border-radius:6px;overflow:hidden;font-size:9px}
+.tbl th{background:#E7ECF2;padding:3px 6px;text-align:left;color:#5A6878}
+.tbl td{padding:3px 6px;border-top:1px solid #EDF1F6}
+.banner{border-radius:6px;padding:6px 9px;font-size:9.5px;font-weight:700;display:flex;gap:6px;align-items:center}
+.cap{font-size:10.5px;color:#8A97A6;text-align:center;padding:5px 8px 7px;font-style:normal}
+
+footer{background:#101820;color:#8FA0B3;padding:34px 0;font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+/* 발급 링크 버튼 */
+.issue{display:inline-flex;align-items:center;gap:5px;margin-top:12px;font-size:12.5px;font-weight:700;color:#fff;background:var(--sec);border-radius:7px;padding:6px 12px;text-decoration:none;transition:opacity .15s}
+.issue:hover{opacity:.85}
+.issue:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.issue .arr{font-size:11px;opacity:.8}
+/* 과금 주의 배지 */
+.pay{display:inline-flex;align-items:center;gap:4px;vertical-align:middle;margin-left:7px;font-size:11.5px;font-weight:700;background:#FFF1E2;color:#9A5400;border:1px solid #F3D3AC;border-radius:99px;padding:2px 9px;white-space:nowrap}
+.pay.hard{background:#FDE7E4;color:#A8352A;border-color:#F3C0BA}
+.paynote{margin-top:12px;background:#FFF8EF;border:1px solid #F1DCC0;border-left:4px solid #D96C06;border-radius:8px;padding:9px 13px;font-size:12.5px;color:#7A4A08;line-height:1.55}
+/* 요금 스냅샷 표 */
+.pricecard{border-left-color:var(--warn)}
+.pricewrap{overflow-x:auto;margin-top:16px}
+.pricetbl{width:100%;min-width:520px;border-collapse:collapse;font-size:13.5px;background:var(--surface)}
+.pricetbl th{background:var(--line-soft);text-align:left;padding:8px 10px;color:#49586A;font-weight:700;white-space:nowrap}
+.pricetbl td{padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}
+.pricetbl .num{text-align:right;font-family:var(--mono);white-space:nowrap}
+.priceSrc{margin-top:12px}
+.asof{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:2px 9px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+.paynote b{color:#8A3E00}
+
+/* ── 키 관리 수칙 (보안 섹션) ── */
+.safe{background:#101820;color:#DCE5EF;border:1px solid #223041;border-radius:14px;padding:28px 26px;margin-bottom:64px}
+.safe .sh{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.safe h2{font-size:24px;font-weight:800;color:#fff}
+.safe .warnchip{font-family:var(--mono);font-size:11px;background:#3A1F1C;color:#F0917F;border:1px solid #5A2E28;border-radius:99px;padding:3px 10px;letter-spacing:.06em}
+.safe .slede{color:#9FB0C2;font-size:14px;margin-bottom:20px;max-width:680px}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.rcol{background:#0B1118;border-radius:10px;padding:16px 18px}
+.rcol.do{border-top:4px solid #5CC46A}
+.rcol.dont{border-top:4px solid #E96A5C}
+.rcol h3{font-size:15px;margin-bottom:10px}
+.rcol.do h3{color:#7BE0A0}
+.rcol.dont h3{color:#F0917F}
+.rcol ul{list-style:none}
+.rcol li{font-size:13.5px;color:#C3CEDA;padding:6px 0 6px 24px;position:relative;border-bottom:1px dashed #1D2836}
+.rcol li:last-child{border-bottom:0}
+.rcol li b{color:#fff}
+.rcol.do li::before{content:"✓";position:absolute;left:2px;color:#5CC46A;font-weight:800}
+.rcol.dont li::before{content:"✕";position:absolute;left:2px;color:#E96A5C;font-weight:800}
+.ktype{background:#0B1118;border-radius:10px;padding:16px 18px}
+.ktype h3{font-size:15px;color:#8FC7F0;margin-bottom:10px}
+.ktype .kt-row{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:8px 0;border-bottom:1px dashed #1D2836;font-size:13.5px;color:#C3CEDA}
+.ktype .kt-row:last-child{border-bottom:0}
+.ktype .kt-tag{font-family:var(--mono);font-size:11px;border-radius:6px;padding:3px 8px;text-align:center;align-self:start}
+.kt-open{background:#12301F;color:#7BE0A0;border:1px solid #1E4A30}
+.kt-secret{background:#3A1F1C;color:#F0917F;border:1px solid #5A2E28}
+.leak{margin-top:14px;background:#1A1206;border:1px solid #4A3410;border-radius:10px;padding:13px 16px;font-size:13.5px;color:#E8D3A0}
+.leak b{color:#FFD98A}
+@media (max-width:640px){
+  .api-top{flex-direction:column}.keycard{width:100%}.keywrap{width:100%}.issue{width:100%;justify-content:center}.rules{grid-template-columns:1fr}
+  .ktype .kt-row{grid-template-columns:1fr;gap:3px}
+  .envfile pre{font-size:11.5px;line-height:1.7}
+  .safe{padding:22px 18px}.api{padding:20px 16px}
+  .wrap{padding:0 16px}
+  .sec-head{gap:4px 10px}
+  .sec-head h2{font-size:21px}
+  .sec-head .tag{font-size:10.5px;letter-spacing:.04em}
+  .sec-desc{font-size:13.5px}
+  .api h3{font-size:17.5px;line-height:1.35}
+  .api .from{font-size:12px}
+  .meta span{font-size:11px;padding:2px 8px}
+  .use{padding:14px}
+  .use h4{font-size:14px}
+  .use p{font-size:12.5px}
+  .safe h2{font-size:20px}
+  .rcol li{font-size:12.5px}
+  .leak,.ktype .kt-row{font-size:12.5px}
+  .pay{font-size:10.5px;margin-left:5px}
+  h1{line-height:1.25}
+}
+</style>
+</head>
+<body>
+<div class="scrim" id="scrim"></div>
+<div class="shell">
+<aside class="side" id="side">
+  <div class="brand">API키 대백과<span>종류·발급·요금</span></div>
+  <ul class="toc" id="toc">
+    <li><a href="#safe"><i class="n">00</i>키 관리 수칙</a></li>
+    <li><a href="#pub"><i class="n">01</i>공공데이터</a></li>
+    <li><a href="#ai"><i class="n">02</i>생성형 AI</a></li>
+    <li><a href="#map"><i class="n">03</i>지도·위치</a></li>
+    <li><a href="#msg"><i class="n">04</i>소통·알림</a></li>
+    <li><a href="#media"><i class="n">05</i>미디어·콘텐츠</a></li>
+    <li><a href="#db"><i class="n">06</i>데이터 저장·로그인</a></li>
+    <li><a href="#util"><i class="n">07</i>결제·생활 유틸</a></li>
+  </ul>
+  <div class="sidenote">
+    목업은 배치 예시이며 실제 API 연동 화면이 아닙니다.<br><br>
+    키는 <span style="font-family:var(--mono)">.env</span>에, 비밀키는 서버에.
+  </div>
+</aside>
+
+<main class="main">
+<div class="topbar"><span class="tt">API키 대백과</span><button id="menubtn" type="button">목차</button></div>
+<header>
+  <div class="wrap">
+    <p class="doki-mark"><b>도키피디아</b> <span class="v">v1.2</span></p>
+    <div class="eyebrow">API FIELD GUIDE</div>
+    <h1>API키 대백과<br><span class="thin">키 하나 붙이면 웹앱이 이렇게 달라진다</span></h1>
+    <p class="lede">프롬프트만으로 만든 웹앱은 "그럴듯한 껍데기"에서 멈추기 쉽습니다. 진짜 데이터·AI·지도·알림을 연결하는 열쇠가 API 키입니다. 아래 <b>.env</b> 파일의 항목을 누르면 해당 분류로 이동합니다.</p>
+    <div class="envfile">
+      <div class="bar"><i style="background:#E96A5C"></i><i style="background:#E9B94F"></i><i style="background:#5CC46A"></i>&nbsp;.env — 내 웹앱의 열쇠꾸러미</div>
+      <pre><span class="env-c"># 클릭하면 해당 분류로 이동합니다</span>
+<a href="#pub"><span class="k" style="color:#4FD1C5">KMA_SERVICE_KEY</span><span class="eq">=</span><span class="val">"공공데이터 · 기상청 / 나이스 / 에어코리아 / 천문연"</span></a>
+<a href="#ai"><span class="k" style="color:#B49AF0">ANTHROPIC_API_KEY</span><span class="eq">=</span><span class="val">"생성형 AI · 클로드 / GPT / 제미나이"</span></a>
+<a href="#map"><span class="k" style="color:#7FD18B">KAKAO_MAP_KEY</span><span class="eq">=</span><span class="val">"지도·위치 · 카카오맵 / 구글맵"</span></a>
+<a href="#msg"><span class="k" style="color:#F0B27A">SOLAPI_API_KEY</span><span class="eq">=</span><span class="val">"소통·알림 · 문자 / 웹훅 / 메일"</span></a>
+<a href="#media"><span class="k" style="color:#F08CB4">YOUTUBE_API_KEY</span><span class="eq">=</span><span class="val">"미디어·콘텐츠 · 유튜브 / 언스플래시 / 번역"</span></a>
+<a href="#db"><span class="k" style="color:#7FB3F0">FIREBASE_CONFIG</span><span class="eq">=</span><span class="val">"데이터 저장·로그인 · 파이어베이스 / 수파베이스 / 구글시트"</span></a>
+<a href="#util"><span class="k" style="color:#C9A793">TOSS_CLIENT_KEY</span><span class="eq">=</span><span class="val">"결제·생활 유틸 · 토스페이먼츠 / 도서 / 공휴일"</span></a>
+<a href="#safe"><span class="k" style="color:#F0917F">KEY_SAFETY_RULES</span><span class="eq">=</span><span class="val" style="color:#F0B27A">"⚠️ 키 관리 수칙 · 유출되기 전에 꼭 읽기"</span></a></pre>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ═══════════ 0. 키 관리 수칙 ═══════════ -->
+<section class="safe" id="safe">
+  <div class="sh"><h2>🔐 API 키 관리 수칙</h2><span class="warnchip">READ FIRST</span></div>
+  <p class="slede">API 키는 <b style="color:#fff">집 열쇠이자 신용카드</b>입니다. 유출되면 남이 내 이름·내 요금으로 API를 쓰게 됩니다. 특히 종량제 키(GPT·클로드 등)는 하룻밤 사이 수십만 원 과금 사례가 실제로 있습니다. 붙이기 전에 아래만은 지켜주세요.</p>
+
+  <div class="rules">
+    <div class="rcol do">
+      <h3>이렇게 하세요</h3>
+      <ul>
+        <li>키는 <b>.env 파일</b>에 두고 코드에서는 변수로만 불러오기</li>
+        <li>.env를 <b>.gitignore에 등록</b>하고 나서 깃허브에 올리기 — 순서가 반대면 이미 늦습니다</li>
+        <li>공유용으로는 값 없는 <b>.env.example</b>(키 이름만) 만들기</li>
+        <li>발급 콘솔에서 <b>도메인·IP 제한</b> 걸기 (카카오·구글맵은 필수 설정)</li>
+        <li><b>사용량 한도·알림</b> 설정하기 — 종량제 키의 안전벨트</li>
+        <li>프로젝트 끝난 키는 <b>비활성화·삭제</b>하기</li>
+      </ul>
+    </div>
+    <div class="rcol dont">
+      <h3>절대 하지 마세요</h3>
+      <ul>
+        <li>코드 안에 키를 <b>그대로 붙여넣기(하드코딩)</b></li>
+        <li><b>비밀 키(sk-…, 시크릿)를 프론트엔드에 노출</b> — 브라우저 개발자도구로 누구나 볼 수 있습니다</li>
+        <li>키가 든 코드를 <b>공개 깃허브·블로그·단톡방</b>에 공유 — 봇이 몇 분 만에 수집해 갑니다</li>
+        <li>AI 채팅창에 <b>실제 키를 붙여넣고</b> 질문하기 — 예시 키(sk-xxxx)로 바꿔서 물어보세요</li>
+        <li>하나의 키를 <b>여러 프로젝트에 돌려쓰기</b> — 유출 시 전부 뚫립니다</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="ktype">
+    <h3>💡 키에도 등급이 있습니다 — 어디까지 노출해도 되나</h3>
+    <div class="kt-row"><span class="kt-tag kt-open">공개 가능</span><span>브라우저에서 쓰라고 만든 키 — 카카오맵 JavaScript 키, Firebase config, Supabase anon 키, 토스 클라이언트 키. 단, <b style="color:#fff">도메인 제한·보안규칙 설정이 전제</b>입니다. 설정 없이 공개하면 이것도 위험해요.</span></div>
+    <div class="kt-row"><span class="kt-tag kt-secret">서버 전용</span><span>돈이 나가거나 발송이 일어나는 키 — GPT·클로드·제미나이 API 키, 솔라피 시크릿, 토스 시크릿 키, 서비스계정 키. <b style="color:#fff">반드시 서버(백엔드·서버리스 함수)를 거쳐</b> 호출하고, 프론트 코드에는 절대 넣지 않습니다.</span></div>
+  </div>
+
+  <div class="leak">🚨 <b>이미 유출됐다면?</b> 숨기거나 지우는 걸로는 해결되지 않습니다(깃 기록에 남음). ① 콘솔에서 <b>즉시 키 재발급(기존 키 폐기)</b> → ② 사용량 내역에서 이상 호출 확인 → ③ 새 키는 .env로 관리 시작. 순서는 항상 "폐기가 먼저"입니다.</div>
+
+  <div class="leak" style="background:#0B1118;border-color:#223041;color:#C3CEDA">
+    <b style="color:#fff">📌 아래 표시 읽는 법</b><br>
+    <span class="pay hard" style="margin:5px 6px 0 0">💸 사용량만큼 과금</span> 쓴 만큼 매달 청구됩니다. 한도 설정 없이 방치하면 위험해요.<br>
+    <span class="pay" style="margin:5px 6px 0 0">⚠️ 무료 한도 초과 시 과금</span> 개인 프로젝트 수준이면 대개 무료 범위 안이지만, 공개 배포하면 넘길 수 있습니다.<br>
+    <span style="display:inline-block;margin-top:5px">표시가 없는 API는 <b style="color:#7BE0A0">완전 무료</b>이거나 호출 한도를 넘으면 그냥 차단됩니다.</span>
+  </div>
+</section>
+
+
+<!-- ═══════════ 1. 공공데이터 ═══════════ -->
+<section class="section" id="pub" style="--sec:var(--c-pub)">
+  <div class="sec-head"><h2>🏛 공공데이터</h2><span class="tag">PUBLIC DATA · 무료 · 발급 즉시~1일</span></div>
+  <p class="sec-desc">공공데이터포털(data.go.kr)에서 회원가입 후 "활용신청"만 하면 대부분 무료로 키를 받습니다. 실제 대한민국 데이터가 들어오는 순간, 웹앱이 장난감에서 도구가 됩니다.</p>
+
+  <!-- 기상청 -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>기상청 단기예보 API</h3>
+        <div class="from">공공데이터포털 · 격자 좌표 기반 동네예보</div>
+        <div class="meta"><span>비용 <b>무료</b></span><span>인증 <b>서비스키(쿼리)</b></span><span>난이도 <b>★★☆</b></span><span>일 10,000회</span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">SERVICE KEY</div><div class="kc-v">kMa9…%2Fx3&#61;&#61;</div><div class="kc-f">data.go.kr → 활용신청 → 자동승인</div></div><a class="issue" href="https://www.data.go.kr" target="_blank" rel="noopener">🔑 공공데이터포털에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>메인 화면 날씨 위젯</h4>
+        <p>접속한 순간 오늘 기온·강수확률을 보여주는 카드. 학교·행사 홈페이지의 단골 배치.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">school-fair.app</span></div>
+          <div class="mbody"><div class="m-nav"><i></i><i></i><i></i></div>
+            <div class="grid2">
+              <div class="wg hl"><span class="hl-tag">API 영역</span><div class="s">서울 · 오늘</div><div class="big">☀️ 27°</div><div class="s">강수확률 10% · 습도 62%</div></div>
+              <div><div class="sk m-line" style="width:90%"></div><div class="sk m-line" style="width:70%"></div><div class="sk m-line" style="width:80%"></div><div class="sk m-line" style="width:55%"></div></div>
+            </div>
+          </div><div class="cap">홈 상단 2단 그리드의 왼쪽 칸에 위젯으로 배치</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>우천 시 자동 안내 배너</h4>
+        <p>강수확률이 기준(예: 60%)을 넘으면 페이지 최상단에 "우천 시 강당 진행" 배너를 자동 표시.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">event.app/notice</span></div>
+          <div class="mbody">
+            <div class="banner hl" style="background:#FFF4E0;color:#8A5A00"><span class="hl-tag">API 영역</span>🌧 내일 강수확률 80% — 행사는 강당에서 진행됩니다</div>
+            <div class="m-nav" style="margin-top:8px"><i></i><i></i><i></i></div>
+            <div class="sk m-line" style="width:85%"></div><div class="sk m-line" style="width:60%"></div>
+          </div><div class="cap">조건을 만족할 때만 나타나는 최상단 알림 바</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">03</span>날짜 추천 대시보드</h4>
+        <p>여러 날짜의 예보를 한 번에 불러와 야외 행사에 가장 좋은 날을 점수로 비교해 주는 화면.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">plan.app/best-day</span></div>
+          <div class="mbody">
+            <div class="wg hl"><span class="hl-tag">API 영역</span>
+              <table class="tbl"><tr><th>날짜</th><th>날씨</th><th>추천</th></tr>
+              <tr><td>5/12(화)</td><td>☀️ 24°</td><td>🟢 최적</td></tr>
+              <tr><td>5/13(수)</td><td>🌧 70%</td><td>🔴 회피</td></tr>
+              <tr><td>5/14(목)</td><td>⛅ 22°</td><td>🟡 보통</td></tr></table>
+            </div>
+          </div><div class="cap">표 형태의 비교 대시보드로 배치</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 나이스 -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>나이스 교육정보 개방 포털</h3>
+        <div class="from">open.neis.go.kr · 급식·학사일정·시간표</div>
+        <div class="meta"><span>비용 <b>무료</b></span><span>인증 <b>API 키(쿼리)</b></span><span>난이도 <b>★☆☆</b></span><span>가입만 하면 즉시 발급</span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">NEIS KEY</div><div class="kc-v">ne1s…d20f</div><div class="kc-f">학교코드 + 교육청코드로 조회</div></div><a class="issue" href="https://open.neis.go.kr" target="_blank" rel="noopener">🔑 나이스 개방포털에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>오늘의 급식 위젯</h4>
+        <p>날짜만 넘기면 오늘 식단이 리스트로 도착. 학급 홈페이지에서 가장 사랑받는 기능.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">class-home.app</span></div>
+          <div class="mbody"><div class="m-nav"><i></i><i></i><i></i></div>
+            <div class="wg hl" style="max-width:70%"><span class="hl-tag">API 영역</span><div class="t">🍚 오늘의 급식</div><div class="s">차수수밥 · 미역국 · 제육볶음<br>배추김치 · 사과</div></div>
+          </div><div class="cap">사이드 카드 형태로 배치</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>학사일정 캘린더</h4>
+        <p>개교기념일·방학·시험 기간을 달력 위에 자동 표시. 직접 입력할 필요가 없어집니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">class-home.app/cal</span></div>
+          <div class="mbody">
+            <div class="wg hl"><span class="hl-tag">API 영역</span><div class="t">5월</div>
+              <div class="grid2" style="grid-template-columns:repeat(7,1fr);gap:3px;margin-top:4px">
+                <span class="chip">1</span><span class="chip">2</span><span class="chip" style="background:#0E7C7B;color:#fff">5 휴</span><span class="chip">6</span><span class="chip">7</span><span class="chip" style="background:#0E7C7B;color:#fff">8 시험</span><span class="chip">9</span>
+              </div>
+            </div>
+          </div><div class="cap">달력 셀 위에 일정 칩이 얹히는 형태</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">03</span>우리 반 시간표 조회기</h4>
+        <p>학년·반을 선택하면 오늘 시간표를 보여주는 조회 화면. 조회 폼 + 결과 표 조합.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">timetable.app</span></div>
+          <div class="mbody">
+            <div class="row" style="margin-bottom:6px"><div class="m-input" style="flex:1">2학년 ▾</div><div class="m-input" style="flex:1">3반 ▾</div><span class="m-btn">조회</span></div>
+            <div class="wg hl"><span class="hl-tag">API 영역</span><div class="row"><span class="chip">1교시 국어</span><span class="chip">2교시 수학</span><span class="chip">3교시 물리</span></div></div>
+          </div><div class="cap">선택 폼 아래에 결과가 채워지는 구조</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 에어코리아 -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>에어코리아 대기오염정보 API</h3>
+        <div class="from">공공데이터포털 · 측정소별 실시간 미세먼지</div>
+        <div class="meta"><span>비용 <b>무료</b></span><span>인증 <b>서비스키(쿼리)</b></span><span>난이도 <b>★★☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">SERVICE KEY</div><div class="kc-v">a1rK…%3Dq9</div><div class="kc-f">측정소명으로 실시간 농도 조회</div></div><a class="issue" href="https://www.data.go.kr" target="_blank" rel="noopener">🔑 공공데이터포털에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>미세먼지 신호등</h4>
+        <p>PM10·PM2.5 수치를 좋음/보통/나쁨 색 신호로 변환. 숫자보다 직관적인 상태 표시.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">air.app</span></div>
+          <div class="mbody"><div class="m-nav"><i></i><i></i><i></i></div>
+            <div class="wg hl" style="max-width:65%;text-align:center"><span class="hl-tag">API 영역</span>
+              <div class="row" style="justify-content:center"><span class="dot" style="background:#5CC46A;width:16px;height:16px"></span><span class="dot" style="background:#E2E7EE;width:16px;height:16px"></span><span class="dot" style="background:#E2E7EE;width:16px;height:16px"></span></div>
+              <div class="t" style="margin-top:4px">좋음 · PM2.5 11㎍</div>
+            </div>
+          </div><div class="cap">색 원 3개로 만든 신호등 컴포넌트</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>야외활동 판단 배지</h4>
+        <p>날씨 API와 조합해 "오늘 운동장 수업 가능 여부"를 O/X 배지 하나로 요약해 주는 기능.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">pe-class.app</span></div>
+          <div class="mbody"><div class="m-nav"><i></i><i></i><i></i></div>
+            <div class="row">
+              <div class="wg" style="flex:1"><div class="s">오늘 체육 수업</div><div class="t">3·5교시</div></div>
+              <div class="wg hl" style="flex:1;text-align:center"><span class="hl-tag">API 영역</span><div class="big">⭕</div><div class="s">야외수업 가능</div></div>
+            </div>
+          </div><div class="cap">기존 정보 카드 옆에 판단 결과만 배지로</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 천문연 -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>한국천문연구원 출몰·월령 API</h3>
+        <div class="from">공공데이터포털 · 일출일몰 시각, 달의 위상</div>
+        <div class="meta"><span>비용 <b>무료</b></span><span>인증 <b>서비스키(쿼리)</b></span><span>난이도 <b>★★☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">SERVICE KEY</div><div class="kc-v">kAsI…%2Bm7</div><div class="kc-f">지역명·날짜로 조회</div></div><a class="issue" href="https://www.data.go.kr" target="_blank" rel="noopener">🔑 공공데이터포털에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>관측 조건 안내판</h4>
+        <p>천체관측 행사 페이지에 "오늘 일몰 19:42 · 관측 시작 20:30"을 자동 계산해 표시.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">star-night.app</span></div>
+          <div class="mbody" style="background:#1A2233">
+            <div class="wg hl" style="background:#232D42;color:#DCE5EF"><span class="hl-tag">API 영역</span><div class="t" style="color:#fff">🌇 일몰 19:42 → 🔭 관측 시작 20:30</div><div class="s" style="color:#9FB0C2">박명 종료 후 자동 계산</div></div>
+            <div class="sk m-line" style="width:70%;background:#2C3850;margin-top:8px"></div><div class="sk m-line" style="width:50%;background:#2C3850"></div>
+          </div><div class="cap">다크 테마 행사 페이지의 히어로 아래 안내판</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>오늘 밤 달 모양 위젯</h4>
+        <p>월령 값으로 달 그림을 바꿔 그려주는 위젯. 보름달 D-day 카운트도 함께.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">moon.app</span></div>
+          <div class="mbody" style="background:#1A2233"><div class="m-nav" style="background:#232D42"><i style="background:#3A4763"></i><i style="background:#3A4763"></i></div>
+            <div class="wg hl" style="background:#232D42;color:#DCE5EF;max-width:60%;text-align:center"><span class="hl-tag">API 영역</span><div class="big">🌔</div><div class="s" style="color:#9FB0C2">월령 11.2 · 보름까지 D-4</div></div>
+          </div><div class="cap">월령 수치 → 이모지/그림 매핑 위젯</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 2. 생성형 AI ═══════════ -->
+<section class="section" id="ai" style="--sec:var(--c-ai)">
+  <div class="sec-head"><h2>🤖 생성형 AI</h2><span class="tag">GENERATIVE AI · 종량제 · 무료 티어 있음</span></div>
+  <p class="sec-desc">키 하나로 웹앱에 "생각하는 기능"이 생깁니다. 핵심은 <b>프롬프트를 코드 안에 미리 심어두고</b> 사용자 입력만 끼워 넣는 것 — 같은 키로도 챗봇, 요약기, 채점기가 전부 만들어집니다. ⚠️ 키를 프론트엔드 코드에 그대로 노출하면 도용될 수 있어 서버(프록시)를 거치는 게 안전합니다.</p>
+
+
+  <div class="api pricecard">
+    <div class="api-top">
+      <div>
+        <h3>요금 스냅샷 <span class="asof">2026-08-23 기준</span></h3>
+        <p class="from">100만 토큰당 단가입니다. 입력은 내가 보낸 글, 출력은 모델이 쓴 글. 한글은 대략 1글자 ≒ 1~2토큰으로 잡으면 감이 옵니다.</p>
+      </div>
+    </div>
+    <div class="pricewrap">
+      <table class="pricetbl">
+        <thead><tr><th>모델</th><th class="num">입력 / 1M</th><th class="num">출력 / 1M</th><th>메모</th></tr></thead>
+        <tbody>
+          <tr><td><b>Claude Opus 5</b></td><td class="num">$5.00</td><td class="num">$25.00</td><td>Anthropic 주력</td></tr>
+          <tr><td><b>Claude Sonnet 5</b></td><td class="num">$3.00</td><td class="num">$15.00</td><td>도입가 $2 / $10 은 <b>2026-08-31 종료</b></td></tr>
+          <tr><td><b>Claude Haiku 4.5</b></td><td class="num">$1.00</td><td class="num">$5.00</td><td>가장 저렴. 컨텍스트 200K</td></tr>
+          <tr><td><b>Gemini 3.7 Flash</b></td><td class="num">$0.75</td><td class="num">$3.75</td><td><b>2026-12-31까지</b>. 2027-01-01부터 $1.50 / $7.50</td></tr>
+          <tr><td><b>GPT-5.6 Sol</b></td><td class="num">$4.00</td><td class="num">$20.00</td><td>8/21 인하. 프로모 <b>최소 2026-11-21까지</b>, 표준가 $5 / $30</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="paynote"><b>도입가·프로모션에는 반드시 종료일이 붙어 있습니다.</b> 위 표에서 종료일이 적힌 줄은 그날이 지나면 값이 오릅니다.
+    수업용 데모처럼 짧게 쓰면 차이가 거의 없지만, 학교 계정으로 상시 돌리는 앱이라면 <b>결제 알림과 사용량 한도를 먼저 걸어두세요</b>.
+    요금은 수시로 바뀌므로 도입 전 각 사 공식 요금 페이지를 다시 확인하시길 권합니다.</div>
+    <p class="from priceSrc">출처 —
+      <a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noopener">Gemini API 요금</a> ·
+      <a href="https://developers.openai.com/api/docs/models/gpt-5.6-sol" target="_blank" rel="noopener">GPT-5.6 Sol 모델 문서</a> ·
+      <a href="https://www.anthropic.com/pricing" target="_blank" rel="noopener">Anthropic 요금</a>
+    </p>
+  </div>
+
+  <!-- Claude -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>Anthropic Claude API<span class="pay hard">💸 사용량만큼 과금</span></h3>
+        <div class="from">console.anthropic.com · 긴 문서 처리와 안정적인 지시 이행에 강점</div>
+        <div class="meta"><span>비용 <b>종량제</b></span><span>인증 <b>x-api-key 헤더</b></span><span>난이도 <b>★★☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">API KEY</div><div class="kc-v">sk-ant-api03-••••••••</div><div class="kc-f">콘솔 → API Keys → Create Key</div></div><a class="issue" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">🔑 Anthropic 콘솔에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>사이트 상주 챗봇</h4>
+        <p>우하단 말풍선 버튼을 누르면 열리는 Q&A 챗봇. 시스템 프롬프트에 안내문·FAQ를 심어두면 우리 서비스 전용 상담원이 됩니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">service.app</span></div>
+          <div class="mbody"><div class="m-nav"><i></i><i></i><i></i></div>
+            <div class="sk m-line" style="width:80%"></div><div class="sk m-line" style="width:60%"></div>
+            <div class="hl" style="position:absolute;right:8px;bottom:8px;width:34px;height:34px"><span class="hl-tag">API</span><div class="fab" style="right:0;bottom:0">💬</div></div>
+          </div><div class="cap">본문과 독립된 플로팅 버튼 → 팝업 채팅창</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>긴 글 요약 버튼</h4>
+        <p>게시글·공지 상단에 "3줄 요약" 버튼을 달아, 누르면 본문을 통째로 보내 요약을 받아옵니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">board.app/post/42</span></div>
+          <div class="mbody">
+            <div class="row" style="justify-content:space-between;margin-bottom:6px"><div class="sk m-line" style="width:45%;height:8px"></div><span class="m-btn">✨ 3줄 요약</span></div>
+            <div class="wg hl"><span class="hl-tag">API 영역</span><div class="s">① 일정이 5월로 변경 ② 장소는 강당 ③ 신청은 금요일까지</div></div>
+            <div class="sk m-line" style="width:95%;margin-top:7px"></div><div class="sk m-line" style="width:88%"></div><div class="sk m-line" style="width:91%"></div>
+          </div><div class="cap">본문 위에 요약 상자가 삽입되는 형태</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">03</span>맞춤 문서 생성기</h4>
+        <p>조건(주제·난이도·분량)을 폼으로 받아 활동지·가정통신문 초안을 통째로 만들어 주는 생성 도구.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">maker.app</span></div>
+          <div class="mbody">
+            <div class="grid2">
+              <div><div class="m-input" style="margin-bottom:5px">주제: 에너지 보존</div><div class="m-input" style="margin-bottom:5px">난이도: 중 ▾</div><span class="m-btn">생성하기</span></div>
+              <div class="wg hl"><span class="hl-tag">API 영역</span><div class="s">📄 생성된 초안</div><div class="sk m-line" style="width:90%"></div><div class="sk m-line" style="width:75%"></div><div class="sk m-line" style="width:85%"></div></div>
+            </div>
+          </div><div class="cap">왼쪽 입력 폼 → 오른쪽 결과 미리보기 2단 구조</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GPT -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>OpenAI GPT API<span class="pay hard">💸 사용량만큼 과금</span></h3>
+        <div class="from">platform.openai.com · 생태계·예제가 가장 풍부</div>
+        <div class="meta"><span>비용 <b>종량제</b></span><span>인증 <b>Bearer 토큰</b></span><span>난이도 <b>★★☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">API KEY</div><div class="kc-v">sk-proj-••••••••</div><div class="kc-f">JSON 모드로 구조화 응답 받기 쉬움</div></div><a class="issue" href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">🔑 OpenAI 플랫폼에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>글쓰기 첨삭 도우미</h4>
+        <p>입력창에 쓴 글의 어색한 문장을 찾아 수정 제안을 달아주는 에디터. 원문과 제안을 나란히 표시.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">write.app</span></div>
+          <div class="mbody">
+            <div class="grid2">
+              <div class="wg"><div class="s">내 글</div><div class="sk m-line" style="width:90%"></div><div class="m-line" style="width:80%;background:#F8D7DA"></div><div class="sk m-line" style="width:85%"></div></div>
+              <div class="wg hl"><span class="hl-tag">API 영역</span><div class="s">제안</div><div class="s" style="color:#1C2733">🖍 "~것 같다" 반복 → 단정형으로</div></div>
+            </div>
+          </div><div class="cap">문제 문장 하이라이트 + 옆 칸에 제안</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>퀴즈 자동 출제기</h4>
+        <p>지문을 붙여 넣으면 4지선다 문제를 JSON으로 받아 바로 풀 수 있는 퀴즈 화면으로 변환.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">quiz.app</span></div>
+          <div class="mbody">
+            <div class="wg hl"><span class="hl-tag">API 영역</span><div class="t">Q1. 관성의 법칙과 관련 있는 것은?</div>
+              <div class="row" style="margin-top:4px;flex-wrap:wrap"><span class="chip">① 급정거</span><span class="chip" style="background:#E7E0F7">② 낙하</span><span class="chip">③ 부력</span><span class="chip">④ 마찰</span></div>
+            </div>
+            <div class="row" style="margin-top:6px;justify-content:flex-end"><span class="m-btn ghost">다음 문제 →</span></div>
+          </div><div class="cap">AI 응답(JSON)을 카드형 문제로 렌더링</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gemini -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>Google Gemini API<span class="pay">⚠️ 무료 한도 초과 시 과금</span></h3>
+        <div class="from">aistudio.google.com · 넉넉한 무료 티어, 이미지 입력에 강점</div>
+        <div class="meta"><span>비용 <b>무료 티어 + 종량제</b></span><span>인증 <b>API 키(쿼리/헤더)</b></span><span>난이도 <b>★☆☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">API KEY</div><div class="kc-v">AIzaSy••••••••</div><div class="kc-f">AI Studio에서 클릭 몇 번으로 발급</div></div><a class="issue" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">🔑 Google AI Studio에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>사진 인식 업로더</h4>
+        <p>사진을 올리면 내용을 읽어 설명·분류해 주는 기능. 식물 이름 찾기, 손글씨 풀이 읽기 등.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">lens.app</span></div>
+          <div class="mbody">
+            <div class="row">
+              <div class="wg" style="flex:1;text-align:center;border:1.5px dashed #C9D3DF"><div class="big">📷</div><div class="s">사진을 끌어다 놓기</div></div>
+              <div class="wg hl" style="flex:1"><span class="hl-tag">API 영역</span><div class="s">분석 결과</div><div class="s" style="color:#1C2733">"단풍나무 잎 — 잎맥이 5갈래…"</div></div>
+            </div>
+          </div><div class="cap">드롭존 + 분석 결과 패널의 좌우 배치</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>무료 프로토타입 챗</h4>
+        <p>아이디어 검증 단계에서 비용 없이 붙여보는 대화 기능. 무료 한도 내에서 데모 시연에 충분.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">demo.app/chat</span></div>
+          <div class="mbody hl" style="margin:2px"><span class="hl-tag">API 영역</span>
+            <div class="bubble">무엇이든 물어보세요!</div>
+            <div class="bubble me" style="margin-top:5px">가입 절차 알려줘</div>
+            <div class="bubble" style="margin-top:5px">3단계로 진행돼요. 먼저…</div>
+          </div><div class="cap">화면 전체가 대화 UI인 챗 페이지</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">03</span>음성 읽어주기(TTS 조합)</h4>
+        <p>생성한 답변을 브라우저 TTS와 조합해 읽어주는 접근성 기능. 버튼 하나로 낭독 시작.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">read.app</span></div>
+          <div class="mbody"><div class="m-nav"><i></i><i></i><i></i></div>
+            <div class="wg hl"><span class="hl-tag">API 영역</span><div class="row" style="justify-content:space-between"><div class="s" style="color:#1C2733">오늘의 요약 낭독</div><span class="m-btn">🔊 듣기</span></div>
+              <div class="bar-h" style="height:20px;margin-top:4px"><i style="height:40%"></i><i style="height:80%"></i><i style="height:55%"></i><i style="height:95%"></i><i style="height:60%"></i><i style="height:30%"></i></div>
+            </div>
+          </div><div class="cap">재생 버튼 + 파형 시각화 컴포넌트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 3. 지도·위치 ═══════════ -->
+<section class="section" id="map" style="--sec:var(--c-map)">
+  <div class="sec-head"><h2>🗺 지도·위치</h2><span class="tag">MAPS · 무료 쿼터 넉넉</span></div>
+  <p class="sec-desc">"오시는 길" 한 장이 신뢰도를 바꿉니다. 국내 서비스라면 카카오맵이 도로명·건물명 인식에서 유리합니다.</p>
+
+  <!-- 카카오맵 -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>카카오맵 JavaScript API</h3>
+        <div class="from">developers.kakao.com · 지도 표시 + 주소↔좌표 변환</div>
+        <div class="meta"><span>비용 <b>무료</b></span><span>인증 <b>JavaScript 키 + 도메인 등록</b></span><span>난이도 <b>★★☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">JAVASCRIPT KEY</div><div class="kc-v">7f2a••••••••</div><div class="kc-f">내 앱 등록 → 플랫폼(웹) 도메인 등록 필수</div></div><a class="issue" href="https://developers.kakao.com" target="_blank" rel="noopener">🔑 카카오 개발자센터에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>오시는 길 임베드</h4>
+        <p>행사장·가게 위치에 마커를 찍은 지도를 페이지에 삽입. 클릭하면 길찾기로 연결.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">visit.app/location</span></div>
+          <div class="mbody">
+            <div class="m-map hl"><span class="hl-tag">API 영역</span><span class="pin" style="left:48%;top:38%"></span></div>
+            <div class="row" style="margin-top:6px;justify-content:space-between"><span class="s" style="font-size:10px;color:#5A6878">📍 다산로 123 · 주차 가능</span><span class="m-btn ghost">길찾기</span></div>
+          </div><div class="cap">본문 폭에 맞춘 지도 블록 + 하단 액션</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>여러 지점 마커 지도</h4>
+        <p>지점·부스·수거함 등 여러 위치를 목록과 지도에 동시에 표시. 목록을 누르면 지도가 이동.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">spots.app</span></div>
+          <div class="mbody">
+            <div class="row" style="align-items:stretch">
+              <div style="flex:1"><div class="chip" style="display:block;margin-bottom:4px;background:#DFF0E1">① 정문 부스</div><div class="chip" style="display:block;margin-bottom:4px">② 체육관</div><div class="chip" style="display:block">③ 도서관</div></div>
+              <div class="m-map hl" style="flex:2"><span class="hl-tag">API 영역</span><span class="pin" style="left:22%;top:30%"></span><span class="pin" style="left:60%;top:55%"></span><span class="pin" style="left:75%;top:25%"></span></div>
+            </div>
+          </div><div class="cap">좌측 목록 ↔ 우측 지도 연동 레이아웃</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">03</span>주소 → 좌표 자동 변환</h4>
+        <p>폼에 주소를 입력하면 좌표로 변환해 저장하는 뒷단 기능. 지도 없는 화면에서도 쓰입니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">register.app</span></div>
+          <div class="mbody"><div class="m-nav"><i></i><i></i><i></i></div>
+            <div class="m-input hl" style="margin-bottom:5px"><span class="hl-tag">API 영역</span>다산로 1… <span style="margin-left:auto;color:#2E7D32">✓ 좌표 변환됨</span></div>
+            <div class="row"><span class="chip">lat 37.61</span><span class="chip">lng 127.15</span></div>
+          </div><div class="cap">입력창 뒤에서 조용히 동작하는 변환 기능</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 구글맵 -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>Google Maps Platform<span class="pay">⚠️ 카드 등록 필수 · 크레딧 초과 시 과금</span></h3>
+        <div class="from">console.cloud.google.com · 전 세계 지도·스트리트뷰</div>
+        <div class="meta"><span>비용 <b>월 무료 크레딧</b></span><span>인증 <b>API 키(스크립트)</b></span><span>난이도 <b>★★★</b></span><span>결제수단 등록 필요</span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">API KEY</div><div class="kc-v">AIzaSy••••••••</div><div class="kc-f">키 제한(도메인) 설정 권장</div></div><a class="issue" href="https://console.cloud.google.com/google/maps-apis" target="_blank" rel="noopener">🔑 Google Cloud 콘솔에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>스트리트뷰 미리보기</h4>
+        <p>해외 명소·답사지의 실제 거리 풍경을 페이지 안에서 둘러보게 하는 몰입형 블록.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">trip.app/paris</span></div>
+          <div class="mbody">
+            <div class="hl" style="border-radius:6px"><span class="hl-tag">API 영역</span>
+              <div style="height:70px;border-radius:6px;background:linear-gradient(#AFC8E8 55%,#C9C2A8 55%);position:relative"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px">🕹 360°</span></div>
+            </div>
+          </div><div class="cap">드래그로 둘러보는 파노라마 블록</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>두 지점 거리·시간 계산</h4>
+        <p>출발지·도착지를 넣으면 이동 거리와 예상 시간을 계산해 주는 비교 도구.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">route.app</span></div>
+          <div class="mbody">
+            <div class="row" style="margin-bottom:6px"><div class="m-input" style="flex:1">서울역</div><span>→</span><div class="m-input" style="flex:1">부산역</div></div>
+            <div class="wg hl"><span class="hl-tag">API 영역</span><div class="row" style="justify-content:space-around;text-align:center"><div><div class="t">325km</div><div class="s">거리</div></div><div><div class="t">3h 40m</div><div class="s">자동차</div></div><div><div class="t">2h 30m</div><div class="s">기차</div></div></div></div>
+          </div><div class="cap">입력 2칸 → 결과 3분할 카드</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 4. 소통·알림 ═══════════ -->
+<section class="section" id="msg" style="--sec:var(--c-msg)">
+  <div class="sec-head"><h2>💬 소통·알림</h2><span class="tag">MESSAGING · 건당 과금 or 무료</span></div>
+  <p class="sec-desc">웹앱이 사용자를 "먼저 찾아가게" 만드는 분류입니다. 폼 제출·예약·마감 같은 사건이 생길 때 문자·메신저·메일로 튀어나갑니다.</p>
+
+  <!-- 솔라피 -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>솔라피(SOLAPI) 문자 발송 API<span class="pay hard">💸 발송 건당 과금</span></h3>
+        <div class="from">solapi.com · SMS/LMS/카카오 알림톡 발송</div>
+        <div class="meta"><span>비용 <b>건당 과금(SMS 약 20원대)</b></span><span>인증 <b>API 키 + 시크릿</b></span><span>난이도 <b>★★☆</b></span><span>발신번호 등록 필요</span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">API KEY / SECRET</div><div class="kc-v">NCS••••  /  ••••••••</div><div class="kc-f">반드시 서버에서만 호출</div></div><a class="issue" href="https://solapi.com" target="_blank" rel="noopener">🔑 솔라피에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>예약 확인 문자 자동 발송</h4>
+        <p>예약 완료 순간 신청자 휴대폰으로 확인 문자가 도착. 화면에는 "발송 완료" 표시만 남습니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">booking.app/done</span></div>
+          <div class="mbody" style="text-align:center">
+            <div class="big">✅</div><div class="s" style="font-size:11px">예약이 완료되었습니다</div>
+            <div class="chip hl" style="display:inline-block;margin-top:6px;background:#FFF1E2;color:#8A4B00"><span class="hl-tag">API 영역</span>📱 010-****-1234로 확인 문자 발송됨</div>
+          </div><div class="cap">완료 화면 하단의 발송 상태 칩</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>마감 임박 리마인더</h4>
+        <p>제출 마감 하루 전, 미제출자에게만 자동으로 독촉 문자를 보내는 관리자용 버튼.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">admin.app/remind</span></div>
+          <div class="mbody">
+            <table class="tbl"><tr><th>이름</th><th>제출</th></tr><tr><td>김OO</td><td>✅</td></tr><tr><td>이OO</td><td>❌</td></tr><tr><td>박OO</td><td>❌</td></tr></table>
+            <div class="row" style="margin-top:6px;justify-content:flex-end"><span class="m-btn hl" style="position:relative"><span class="hl-tag">API</span>미제출 2명에게 문자 보내기</span></div>
+          </div><div class="cap">명단 표 + 조건부 발송 버튼</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 웹훅 -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>Discord / Slack 웹훅(Webhook)</h3>
+        <div class="from">각 워크스페이스 설정에서 URL 발급 · 키 대신 "비밀 URL" 방식</div>
+        <div class="meta"><span>비용 <b>무료</b></span><span>인증 <b>웹훅 URL 자체가 키</b></span><span>난이도 <b>★☆☆</b></span><span>초심자 최고 가성비</span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">WEBHOOK URL</div><div class="kc-v">…/webhooks/9821/aX••••</div><div class="kc-f">POST 한 번이면 채널에 메시지 도착</div></div><a class="issue" href="https://support.discord.com/hc/ko/articles/228383668" target="_blank" rel="noopener">🔑 디스코드 웹훅 만드는 법 보기 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>폼 제출 → 운영진 알림</h4>
+        <p>사이트에서 문의·신청이 들어오면 운영진 디스코드 채널에 즉시 알림 메시지가 뜹니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">discord.com/#운영</span></div>
+          <div class="mbody" style="background:#2B2D31">
+            <div class="bubble hl" style="background:#383A40;color:#DBDEE1;max-width:92%"><span class="hl-tag">API 영역</span><b style="color:#F0B27A">🤖 신청봇</b><br>새 신청: 홍길동 · 연수 A반 · 방금 전</div>
+            <div class="bubble" style="background:#383A40;color:#8A8E94;margin-top:5px">확인했습니다 👍</div>
+          </div><div class="cap">웹앱 화면이 아닌 "메신저 쪽"에 나타나는 기능</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>오류·이상 감지 알림</h4>
+        <p>웹앱에서 에러가 나거나 재고가 0이 되는 순간 관리 채널로 경보를 쏘는 감시 기능.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">slack://#서버알림</span></div>
+          <div class="mbody" style="background:#1A1D21">
+            <div class="bubble hl" style="background:#26292E;color:#D1D2D3;max-width:92%;border-left:3px solid #E96A5C"><span class="hl-tag">API 영역</span><b>🚨 오류 발생</b><br>결제 페이지 500 · 12:41 · 3회 연속</div>
+          </div><div class="cap">경고 색 테두리를 두른 알림 메시지</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EmailJS -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>EmailJS<span class="pay">⚠️ 월 200건 초과 시 유료</span></h3>
+        <div class="from">emailjs.com · 서버 없이 브라우저에서 메일 발송</div>
+        <div class="meta"><span>비용 <b>월 200건 무료</b></span><span>인증 <b>Public Key + 서비스 ID</b></span><span>난이도 <b>★☆☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">PUBLIC KEY</div><div class="kc-v">user_Xy••••</div><div class="kc-f">템플릿에 변수 끼워넣기 방식</div></div><a class="issue" href="https://www.emailjs.com" target="_blank" rel="noopener">🔑 EmailJS에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>문의하기 폼</h4>
+        <p>백엔드 없이 정적 사이트에서도 "보내기"를 누르면 내 메일함으로 문의가 도착합니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">portfolio.app/contact</span></div>
+          <div class="mbody">
+            <div class="m-input" style="margin-bottom:5px">이름</div>
+            <div class="m-input" style="margin-bottom:5px;height:30px;align-items:flex-start;padding-top:3px">문의 내용…</div>
+            <span class="m-btn hl" style="position:relative"><span class="hl-tag">API</span>✉️ 보내기</span>
+          </div><div class="cap">전송 버튼 뒤에서 메일 발송이 일어남</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>결과지 메일로 받기</h4>
+        <p>테스트·설문을 마친 사용자가 이메일을 입력하면 결과 요약을 본인 메일로 발송.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">test.app/result</span></div>
+          <div class="mbody" style="text-align:center">
+            <div class="wg" style="display:inline-block"><div class="t">나의 유형: 탐구형 🔬</div></div>
+            <div class="row" style="margin-top:6px;justify-content:center"><div class="m-input" style="width:55%">me@mail.com</div><span class="m-btn hl" style="position:relative"><span class="hl-tag">API</span>결과 받기</span></div>
+          </div><div class="cap">결과 카드 아래 이메일 수집 + 발송 콤보</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 5. 미디어·콘텐츠 ═══════════ -->
+<section class="section" id="media" style="--sec:var(--c-media)">
+  <div class="sec-head"><h2>🎬 미디어·콘텐츠</h2><span class="tag">MEDIA · 대부분 무료 쿼터</span></div>
+  <p class="sec-desc">직접 만들지 않은 콘텐츠(영상·사진·번역문)를 실시간으로 끌어와 페이지를 채우는 분류입니다. "업데이트를 안 해도 늘 새로운 사이트"가 됩니다.</p>
+
+  <!-- YouTube -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>YouTube Data API v3</h3>
+        <div class="from">console.cloud.google.com · 채널·영상·재생목록 조회</div>
+        <div class="meta"><span>비용 <b>무료(일일 쿼터)</b></span><span>인증 <b>API 키(쿼리)</b></span><span>난이도 <b>★★☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">API KEY</div><div class="kc-v">AIzaSy••••••••</div><div class="kc-f">검색은 쿼터 소모 큼 → 채널 ID 조회 권장</div></div><a class="issue" href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener">🔑 Google Cloud 콘솔에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>최신 영상 자동 갤러리</h4>
+        <p>채널에 영상을 올리면 사이트 갤러리가 저절로 갱신. 홈페이지 관리 노동이 사라집니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">channel-home.app</span></div>
+          <div class="mbody"><div class="m-nav"><i></i><i></i><i></i></div>
+            <div class="gal hl"><span class="hl-tag">API 영역</span><div class="thumb"></div><div class="thumb"></div><div class="thumb"></div></div>
+          </div><div class="cap">3열 썸네일 그리드로 자동 배치</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>주제별 큐레이션 페이지</h4>
+        <p>재생목록 단위로 영상을 묶어 "1단원 → 영상 4개"처럼 학습 코스 페이지를 구성.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">course.app/unit-1</span></div>
+          <div class="mbody">
+            <div class="row hl" style="align-items:stretch"><span class="hl-tag">API 영역</span>
+              <div class="thumb" style="flex:1.2"></div>
+              <div style="flex:1"><div class="chip" style="display:block;margin-bottom:3px;background:#F8E1EC">▶ 1강 힘과 운동</div><div class="chip" style="display:block;margin-bottom:3px">2강 관성</div><div class="chip" style="display:block">3강 가속도</div></div>
+            </div>
+          </div><div class="cap">큰 플레이어 + 우측 재생목록 레이아웃</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unsplash -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>Unsplash API</h3>
+        <div class="from">unsplash.com/developers · 고화질 무료 사진 검색</div>
+        <div class="meta"><span>비용 <b>무료(시간당 50회)</b></span><span>인증 <b>Access Key</b></span><span>난이도 <b>★☆☆</b></span><span>출처 표기 필요</span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">ACCESS KEY</div><div class="kc-v">u9Kd••••••••</div><div class="kc-f">키워드 → 사진 URL 반환</div></div><a class="issue" href="https://unsplash.com/developers" target="_blank" rel="noopener">🔑 Unsplash 개발자 페이지에서 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>접속할 때마다 바뀌는 배경</h4>
+        <p>랜덤 사진을 히어로 배경으로 깔아 매일 분위기가 달라지는 첫 화면을 만듭니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">daily.app</span></div>
+          <div class="mbody" style="padding:0">
+            <div class="hl" style="margin:6px;border-radius:6px"><span class="hl-tag">API 영역</span>
+              <div style="height:78px;border-radius:6px;background:linear-gradient(160deg,#8FB3A0,#5A7D8C);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px">오늘의 한 문장 ✍️</div>
+            </div>
+          </div><div class="cap">텍스트 뒤에 깔리는 전면 배경 이미지</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>글감 이미지 자동 삽입</h4>
+        <p>글 제목의 키워드로 사진을 검색해 카드 썸네일을 자동으로 채워주는 블로그형 기능.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">blog.app</span></div>
+          <div class="mbody">
+            <div class="grid2">
+              <div class="wg"><div class="thumb hl" style="aspect-ratio:16/7"><span class="hl-tag">API</span></div><div class="t" style="margin-top:3px">바다의 물리학</div></div>
+              <div class="wg"><div class="thumb hl" style="aspect-ratio:16/7"><span class="hl-tag">API</span></div><div class="t" style="margin-top:3px">구름 관찰 일기</div></div>
+            </div>
+          </div><div class="cap">카드마다 키워드 검색 결과가 썸네일로</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DeepL -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>DeepL 번역 API<span class="pay">⚠️ 무료 한도 초과 시 과금</span></h3>
+        <div class="from">deepl.com/pro-api · 자연스러운 기계번역</div>
+        <div class="meta"><span>비용 <b>월 50만 자 무료</b></span><span>인증 <b>Auth Key(헤더)</b></span><span>난이도 <b>★☆☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">AUTH KEY</div><div class="kc-v">dl-••••:fx</div><div class="kc-f">무료 키는 ":fx" 접미사</div></div><a class="issue" href="https://www.deepl.com/pro-api" target="_blank" rel="noopener">🔑 DeepL API 페이지에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>페이지 언어 전환 버튼</h4>
+        <p>우상단 지구본 버튼으로 본문 전체를 영어·일본어 등으로 즉석 번역. 다문화 안내문에 유용.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">notice.app</span></div>
+          <div class="mbody">
+            <div class="row" style="justify-content:flex-end;margin-bottom:5px"><span class="m-btn ghost hl" style="position:relative"><span class="hl-tag">API</span>🌐 EN ▾</span></div>
+            <div class="sk m-line" style="width:88%"></div><div class="sk m-line" style="width:74%"></div><div class="sk m-line" style="width:81%"></div>
+          </div><div class="cap">헤더 구석의 전역 언어 스위치</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>이중 언어 대조 뷰</h4>
+        <p>원문과 번역문을 좌우로 나란히 보여주는 학습·검토용 화면. 영어 지문 읽기 도구로 활용.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">bilingual.app</span></div>
+          <div class="mbody">
+            <div class="grid2">
+              <div class="wg"><div class="s">원문 EN</div><div class="sk m-line" style="width:92%"></div><div class="sk m-line" style="width:80%"></div></div>
+              <div class="wg hl"><span class="hl-tag">API 영역</span><div class="s">번역 KO</div><div class="sk m-line" style="width:88%;background:#F3D9E5"></div><div class="sk m-line" style="width:76%;background:#F3D9E5"></div></div>
+            </div>
+          </div><div class="cap">문단 단위로 줄이 맞는 2단 대조 배치</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 6. 데이터 저장·로그인 ═══════════ -->
+<section class="section" id="db" style="--sec:var(--c-db)">
+  <div class="sec-head"><h2>🗄 데이터 저장·로그인</h2><span class="tag">BaaS · 무료 티어로 시작</span></div>
+  <p class="sec-desc">서버 없이도 "저장되는 웹앱"을 만들게 해주는 분류입니다. 새로고침하면 사라지는 앱과, 내일 다시 들어와도 남아 있는 앱의 갈림길입니다.</p>
+
+  <!-- Firebase -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>Firebase (구글)<span class="pay">⚠️ 무료 플랜 초과 시 과금</span></h3>
+        <div class="from">firebase.google.com · 인증 + 실시간 DB + 호스팅 올인원</div>
+        <div class="meta"><span>비용 <b>Spark 무료 플랜</b></span><span>인증 <b>구성 객체(config)</b></span><span>난이도 <b>★★☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">FIREBASE CONFIG</div><div class="kc-v">{ apiKey:"AIza…", … }</div><div class="kc-f">보안규칙(Rules) 설정이 진짜 열쇠</div></div><a class="issue" href="https://console.firebase.google.com" target="_blank" rel="noopener">🔑 Firebase 콘솔에서 프로젝트 만들기 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>구글 계정 로그인</h4>
+        <p>버튼 하나로 구글 계정 로그인. 회원가입 화면을 만들 필요 없이 "누가 썼는지"가 생깁니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">app.example</span></div>
+          <div class="mbody" style="text-align:center;padding-top:20px">
+            <div class="t" style="font-size:13px;margin-bottom:8px">시작하기</div>
+            <span class="m-btn hl" style="position:relative;background:#fff;color:#1C2733;border:1px solid #C9D3DF"><span class="hl-tag">API</span>G  구글로 계속하기</span>
+          </div><div class="cap">진입 화면 중앙의 소셜 로그인 버튼</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>실시간 방명록·투표</h4>
+        <p>누군가 글을 쓰면 다른 사람 화면에 새로고침 없이 즉시 나타나는 실시간 동기화.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">guestbook.app</span></div>
+          <div class="mbody">
+            <div class="hl" style="border-radius:6px;padding:2px"><span class="hl-tag">API 영역</span>
+              <div class="bubble" style="max-width:88%">🎈 축하해요! — 방금 전</div>
+              <div class="bubble" style="max-width:88%;margin-top:4px;opacity:.7">잘 보고 갑니다 — 1분 전</div>
+            </div>
+            <div class="row" style="margin-top:6px"><div class="m-input" style="flex:1">메시지 남기기…</div><span class="m-btn">게시</span></div>
+          </div><div class="cap">위에서 아래로 쌓이는 실시간 피드</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">03</span>진행 상황 저장(이어하기)</h4>
+        <p>퀴즈·게임의 진도를 계정에 저장해 다음 접속 때 이어서 하기. 방탈출 게임의 세이브 기능.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">game.app</span></div>
+          <div class="mbody"><div class="m-nav"><i></i><i></i><i></i></div>
+            <div class="wg hl"><span class="hl-tag">API 영역</span><div class="row" style="justify-content:space-between"><div><div class="t">챕터 3 / 7</div><div class="s">마지막 저장 어제 21:40</div></div><span class="m-btn">이어하기 ▶</span></div></div>
+          </div><div class="cap">복귀 사용자를 맞는 이어하기 카드</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>Supabase<span class="pay">⚠️ 무료 플랜 초과 시 유료</span></h3>
+        <div class="from">supabase.com · 오픈소스 진영의 파이어베이스 대안(PostgreSQL)</div>
+        <div class="meta"><span>비용 <b>무료 플랜</b></span><span>인증 <b>URL + anon key</b></span><span>난이도 <b>★★☆</b></span><span>SQL로 직접 관리 가능</span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">ANON KEY</div><div class="kc-v">eyJhbG••••••••</div><div class="kc-f">RLS(행 수준 보안) 켜기 필수</div></div><a class="issue" href="https://supabase.com/dashboard" target="_blank" rel="noopener">🔑 Supabase 대시보드에서 키 확인 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>게시판·댓글 시스템</h4>
+        <p>글 쓰기·목록·댓글이 제대로 저장되는 진짜 게시판. 표 형태 데이터에 특히 강합니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">forum.app</span></div>
+          <div class="mbody">
+            <div class="hl" style="border-radius:6px"><span class="hl-tag">API 영역</span>
+              <table class="tbl"><tr><th>제목</th><th>글쓴이</th><th>💬</th></tr><tr><td>질문 있어요</td><td>별사탕</td><td>3</td></tr><tr><td>후기 공유</td><td>은하수</td><td>7</td></tr></table>
+            </div>
+            <div class="row" style="margin-top:5px;justify-content:flex-end"><span class="m-btn">글쓰기</span></div>
+          </div><div class="cap">목록 → 상세 → 댓글로 이어지는 표준 구조</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>파일 업로드 보관함</h4>
+        <p>이미지·PDF를 올리고 링크로 공유하는 스토리지. 제출함·자료실을 직접 만들 수 있습니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">drive.app</span></div>
+          <div class="mbody">
+            <div class="wg hl" style="text-align:center;border:1.5px dashed #7FB3F0;background:#F4F8FE"><span class="hl-tag">API 영역</span><div class="s">📎 파일을 끌어다 놓거나 클릭</div></div>
+            <div class="row" style="margin-top:6px"><span class="chip">report.pdf ✓</span><span class="chip">photo.png ⏳ 74%</span></div>
+          </div><div class="cap">드롭존 + 업로드 진행률 칩</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Sheets -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>Google Sheets API</h3>
+        <div class="from">console.cloud.google.com · 스프레드시트를 DB처럼</div>
+        <div class="meta"><span>비용 <b>무료</b></span><span>인증 <b>API 키(읽기) / 서비스계정(쓰기)</b></span><span>난이도 <b>★★☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">API KEY</div><div class="kc-v">AIzaSy••••••••</div><div class="kc-f">시트가 곧 관리자 화면이 되는 마법</div></div><a class="issue" href="https://console.cloud.google.com/apis/library/sheets.googleapis.com" target="_blank" rel="noopener">🔑 Google Cloud 콘솔에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>신청자 명단 자동 기록</h4>
+        <p>웹 폼 제출 내용이 구글 시트에 한 줄씩 쌓임. 관리자는 익숙한 시트에서 그대로 확인.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">sheets.google.com</span></div>
+          <div class="mbody" style="background:#fff">
+            <table class="tbl hl" style="border:1px solid #D6DEE8"><tr><th>A 이름</th><th>B 연락처</th><th>C 시간</th></tr><tr><td>홍길동</td><td>010-…</td><td>13:02</td></tr><tr><td style="background:#E8F0FE">← 새 행 자동 추가</td><td></td><td></td></tr></table>
+          </div><div class="cap">웹앱 밖 "시트 쪽"이 저장소가 되는 구조</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>시트로 관리하는 순위표</h4>
+        <p>시트의 점수를 고쳐 쓰면 웹 순위표가 따라 바뀜. 코드 수정 없이 콘텐츠 갱신 가능.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">rank.app</span></div>
+          <div class="mbody">
+            <div class="wg hl"><span class="hl-tag">API 영역</span>
+              <div class="row" style="justify-content:space-between"><span>🥇 1모둠</span><b>420</b></div>
+              <div class="row" style="justify-content:space-between"><span>🥈 3모둠</span><b>385</b></div>
+              <div class="row" style="justify-content:space-between"><span>🥉 2모둠</span><b>310</b></div>
+            </div>
+          </div><div class="cap">시트 데이터 → 리더보드 렌더링</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 7. 결제·생활 유틸 ═══════════ -->
+<section class="section" id="util" style="--sec:var(--c-util)">
+  <div class="sec-head"><h2>💳 결제·생활 유틸</h2><span class="tag">UTILITIES · 분류하기 애매하지만 강력한</span></div>
+  <p class="sec-desc">쓰임새가 좁아 보여도 붙는 순간 앱의 성격을 바꾸는 키들입니다. 특히 결제는 "취미 프로젝트"와 "서비스"를 가르는 경계선입니다.</p>
+
+  <!-- 토스페이먼츠 -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>토스페이먼츠 결제위젯<span class="pay hard">💸 결제 수수료 발생</span></h3>
+        <div class="from">tosspayments.com · 카드·간편결제 창을 임베드</div>
+        <div class="meta"><span>비용 <b>결제 수수료</b></span><span>인증 <b>클라이언트 키 + 시크릿 키</b></span><span>난이도 <b>★★★</b></span><span>테스트 키로 연습 가능</span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">CLIENT KEY</div><div class="kc-v">test_ck_••••••••</div><div class="kc-f">test_ 키는 실제 출금 없이 연습용</div></div><a class="issue" href="https://developers.tosspayments.com" target="_blank" rel="noopener">🔑 토스페이먼츠 개발자센터에서 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>임베드 결제창</h4>
+        <p>주문 페이지 안에 결제 수단 선택 UI가 통째로 들어옵니다. 결제 화면을 직접 만들 필요 없음.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">shop.app/checkout</span></div>
+          <div class="mbody">
+            <div class="row" style="justify-content:space-between;margin-bottom:5px"><span class="s" style="color:#1C2733">굿즈 세트</span><b style="font-size:11px">12,000원</b></div>
+            <div class="wg hl"><span class="hl-tag">API 영역</span><div class="row"><span class="chip" style="background:#E8E2DD">💳 카드</span><span class="chip">토스페이</span><span class="chip">계좌이체</span></div></div>
+            <div style="margin-top:6px"><span class="m-btn" style="display:block;text-align:center">결제하기</span></div>
+          </div><div class="cap">주문 요약 아래에 삽입되는 결제 위젯</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>후원하기 버튼</h4>
+        <p>무료 콘텐츠 페이지 구석에 소액 후원 버튼을 달아 커피 한 잔 값을 받는 구조.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">creator.app</span></div>
+          <div class="mbody"><div class="m-nav"><i></i><i></i><i></i></div>
+            <div class="sk m-line" style="width:85%"></div><div class="sk m-line" style="width:70%"></div>
+            <div class="row" style="margin-top:8px;justify-content:center"><span class="m-btn hl" style="position:relative;background:#5D4037"><span class="hl-tag">API</span>☕ 3,000원 후원하기</span></div>
+          </div><div class="cap">본문 끝의 단일 CTA 버튼</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 알라딘 -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>알라딘 도서 검색 API</h3>
+        <div class="from">aladin.co.kr(TTB) · 도서 정보·표지·ISBN 검색</div>
+        <div class="meta"><span>비용 <b>무료(일 5,000회)</b></span><span>인증 <b>TTB 키(쿼리)</b></span><span>난이도 <b>★☆☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">TTB KEY</div><div class="kc-v">ttb••••1041001</div><div class="kc-f">제목 일부만 넣어도 표지까지 반환</div></div><a class="issue" href="https://www.aladin.co.kr/ttb/apiintro.aspx" target="_blank" rel="noopener">🔑 알라딘 Open API 페이지에서 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>도서 검색 자동완성</h4>
+        <p>제목 몇 글자만 치면 표지와 함께 후보가 뜨는 검색창. 독서 기록 앱의 입력 부담이 사라집니다.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">bookclub.app</span></div>
+          <div class="mbody">
+            <div class="m-input">코스모 |</div>
+            <div class="wg hl" style="margin-top:3px"><span class="hl-tag">API 영역</span>
+              <div class="row"><span style="width:14px;height:20px;background:#B8A088;border-radius:2px;display:inline-block"></span><span class="s" style="color:#1C2733">코스모스 — 칼 세이건</span></div>
+              <div class="row" style="margin-top:3px"><span style="width:14px;height:20px;background:#8898B8;border-radius:2px;display:inline-block"></span><span class="s" style="color:#1C2733">코스모스 씨앗 도감</span></div>
+            </div>
+          </div><div class="cap">입력창 아래로 펼쳐지는 후보 목록</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>표지로 채우는 책장</h4>
+        <p>ISBN만 저장해두면 표지 이미지를 불러와 실제 책장처럼 진열하는 화면.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">shelf.app</span></div>
+          <div class="mbody">
+            <div class="gal hl" style="grid-template-columns:repeat(4,1fr)"><span class="hl-tag">API 영역</span>
+              <div style="aspect-ratio:2/3;border-radius:3px;background:#B8A088"></div><div style="aspect-ratio:2/3;border-radius:3px;background:#8898B8"></div><div style="aspect-ratio:2/3;border-radius:3px;background:#A8B888"></div><div style="aspect-ratio:2/3;border-radius:3px;background:#B88898"></div>
+            </div>
+          </div><div class="cap">세로형 표지 그리드 "가상 책장"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 특일정보 -->
+  <div class="api">
+    <div class="api-top">
+      <div>
+        <h3>한국천문연구원 특일 정보 API</h3>
+        <div class="from">공공데이터포털 · 공휴일·기념일·24절기</div>
+        <div class="meta"><span>비용 <b>무료</b></span><span>인증 <b>서비스키(쿼리)</b></span><span>난이도 <b>★☆☆</b></span></div>
+      </div>
+      <div class="keywrap"><div class="keycard"><div class="kc-l">SERVICE KEY</div><div class="kc-v">h0lI…%2Fd2</div><div class="kc-f">대체공휴일까지 정확히 반환</div></div><a class="issue" href="https://www.data.go.kr" target="_blank" rel="noopener">🔑 공공데이터포털에서 키 발급 <span class="arr">↗</span></a></div>
+    </div>
+    <div class="uses">
+      <div class="use">
+        <h4><span class="no">01</span>달력 빨간날 자동 표시</h4>
+        <p>직접 만든 예약·일정 달력에 공휴일이 자동으로 빨갛게 칠해집니다. 매년 갱신 걱정 끝.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">calendar.app</span></div>
+          <div class="mbody">
+            <div class="wg"><div class="grid2" style="grid-template-columns:repeat(7,1fr);gap:3px">
+              <span class="chip" style="background:#FBE3E3;color:#B23A3A">일</span><span class="chip">월</span><span class="chip">화</span><span class="chip">수</span><span class="chip">목</span><span class="chip">금</span><span class="chip">토</span>
+              <span class="chip">4</span><span class="chip hl" style="background:#FBE3E3;color:#B23A3A;position:relative"><span class="hl-tag">API</span>5 어린이날</span><span class="chip">6</span><span class="chip">7</span><span class="chip">8</span><span class="chip">9</span><span class="chip">10</span>
+            </div></div>
+          </div><div class="cap">달력 셀 색·라벨이 데이터로 결정됨</div>
+        </div>
+      </div>
+      <div class="use">
+        <h4><span class="no">02</span>영업일 기준 D-day 계산</h4>
+        <p>"영업일 3일 후 발송"처럼 주말·공휴일을 건너뛰는 날짜 계산기. 예약·배송 안내에 필수.</p>
+        <div class="mock"><div class="mb"><i></i><i></i><i></i><span class="url">delivery.app</span></div>
+          <div class="mbody" style="text-align:center;padding-top:16px">
+            <div class="wg hl" style="display:inline-block"><span class="hl-tag">API 영역</span><div class="s">지금 주문하면</div><div class="t">5/9(금) 도착 예정</div><div class="s">공휴일 5/5 제외 · 영업일 3일</div></div>
+          </div><div class="cap">계산 근거까지 보여주는 안내 카드</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+<footer class="doki-credit">
+  <div class="wrap">
+    <p><span class="who">도키피디아</span> · API키 대백과 — 종류·발급·요금</p>
+    <dl>
+      <dt>작성</dt><dd>도쌤</dd>
+      <dt>원본</dt><dd><a href="https://dorms.school/board/p/1c238d0a-c453-4456-8bb5-ca4634c930a9">dorms.school/board/p/1c238d0a…</a></dd>
+      <dt>최종수정</dt><dd>2026-08-23</dd>
+      <dt>버전</dt><dd>v1.2</dd>
+    </dl>
+    <p style="margin-top:14px">요금과 무료 티어 한도는 수시로 바뀝니다. 도입 전 각 서비스의 공식 요금 페이지를 다시 확인하세요. 목업은 배치 예시이며 실제 API 연동 화면이 아닙니다.</p>
+  </div>
+</footer>
+</main>
+</div>
+<script>
+(function(){
+"use strict";
+var side=document.getElementById("side"),scrim=document.getElementById("scrim"),mb=document.getElementById("menubtn");
+var links=Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+var secs=links.map(function(a){return document.querySelector(a.getAttribute("href"))});
+function spy(){
+  var y=window.scrollY+140,cur=0;
+  secs.forEach(function(s,i){ if(s && s.offsetTop<=y) cur=i; });
+  links.forEach(function(a,i){ a.classList.toggle("on",i===cur) });
+}
+window.addEventListener("scroll",spy,{passive:true}); spy();
+function toggle(open){ side.classList.toggle("open",open); scrim.classList.toggle("open",open); }
+mb.addEventListener("click",function(){toggle(!side.classList.contains("open"))});
+scrim.addEventListener("click",function(){toggle(false)});
+links.forEach(function(a){a.addEventListener("click",function(){toggle(false)})});
+})();
+</script>
+<!-- 도키피디아 | apikey | v1.2 | https://dorms.school/board/p/1c238d0a-c453-4456-8bb5-ca4634c930a9 -->
+</body>
+</html>
