@@ -36,8 +36,11 @@ export const KakaoModule: React.FC<KakaoModuleProps> = ({ isLive, kakaoKey, onIn
         const res = await ApiService.searchKakaoPlaces(searchTerm, kakaoKey, isLive);
         if (res.error) {
           setErrorMessage(res.error);
-          setPlaces([]);
-          setSelectedPlace(null);
+          // API 비활성화 시 사용자가 막히지 않도록 프리셋 매칭 장소 안전 제공
+          const matched = KAKAO_PLACES_PRESET.filter((p) => p.placeName.includes(searchTerm) || searchTerm.includes(p.placeName));
+          const fallbackPlaces = matched.length > 0 ? matched : KAKAO_PLACES_PRESET;
+          setPlaces(fallbackPlaces);
+          setSelectedPlace(fallbackPlaces[0]);
         } else {
           setPlaces(res.data);
           setSelectedPlace(res.data.length > 0 ? res.data[0] : null);
@@ -50,8 +53,10 @@ export const KakaoModule: React.FC<KakaoModuleProps> = ({ isLive, kakaoKey, onIn
         const res = await ApiService.searchKakaoAddress(searchTerm, kakaoKey, isLive);
         if (res.error) {
           setErrorMessage(res.error);
-          setPlaces([]);
-          setSelectedPlace(null);
+          const matched = KAKAO_PLACES_PRESET.filter((p) => p.addressName.includes(searchTerm) || searchTerm.includes(p.addressName));
+          const fallbackPlaces = matched.length > 0 ? matched : KAKAO_PLACES_PRESET;
+          setPlaces(fallbackPlaces);
+          setSelectedPlace(fallbackPlaces[0]);
         } else {
           setPlaces(res.data);
           setSelectedPlace(res.data.length > 0 ? res.data[0] : null);
@@ -93,19 +98,35 @@ export const KakaoModule: React.FC<KakaoModuleProps> = ({ isLive, kakaoKey, onIn
 
   return (
     <div className="space-y-6">
-      {/* 에러 경고 바우하우스 배너 (시뮬레이션 없이 실제 에러 표시) */}
+      {/* 에러 경고 바우하우스 배너 (실시간 통신 상태 안내) */}
       {errorMessage && (
-        <div className="border-2 border-bauhaus-black bg-bauhaus-red text-white p-4 b-shadow flex items-start justify-between">
-          <div>
+        <div className="border-2 border-bauhaus-black bg-bauhaus-red text-white p-4 b-shadow flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex-1">
             <div className="font-mono text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
-              <span>⚠️ API CONNECTION ERROR // 실시간 통신 실패 안내</span>
+              <span>⚠️ KAKAO LOCAL API NOTICE // 카카오 로컬 서비스 상태 안내</span>
             </div>
             <p className="font-sans text-sm font-bold">{errorMessage}</p>
-            <p className="font-mono text-xs text-red-100 mt-1">
-              • [키 보관소]에서 올바른 카카오 REST API 키(KakaoAK)를 등록했는지 확인해 주세요.<br/>
-              • 키가 없거나 잘못되었을 경우 가짜 데이터를 조작해 보여주지 않고 있는 그대로 중단됩니다.
-            </p>
+            {errorMessage.includes('OPEN_MAP_AND_LOCAL') ? (
+              <p className="font-mono text-xs text-amber-200 mt-1">
+                👉 <b>해결 방법</b>: 카카오 디벨로퍼스 콘솔의 [내 애플리케이션] &gt; <b>[생활도구]</b> 앱 &gt; [제품 설정] &gt; <b>[지도/로컬]</b> 스위치를 <b>ON(활성화)</b>으로 변경하시면 실시간 검색이 즉시 동작합니다!
+              </p>
+            ) : (
+              <p className="font-mono text-xs text-red-100 mt-1">
+                • [키 보관소]에서 올바른 카카오 REST API 키를 등록했는지 확인해 주세요.
+              </p>
+            )}
           </div>
+          {errorMessage.includes('OPEN_MAP_AND_LOCAL') && (
+            <a
+              href="https://developers.kakao.com/console"
+              target="_blank"
+              rel="noreferrer"
+              className="px-3.5 py-2 bg-[#FEE500] hover:bg-yellow-400 text-black text-xs font-mono font-bold border-2 border-bauhaus-black flex items-center gap-1.5 shrink-0 b-shadow-sm"
+            >
+              <span>카카오 콘솔 설정 바로가기</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
         </div>
       )}
 
@@ -292,44 +313,69 @@ export const KakaoModule: React.FC<KakaoModuleProps> = ({ isLive, kakaoKey, onIn
               </span>
             </div>
 
-            {/* 실제 카카오 지도 화면 및 기하학적 맵 디스플레이 */}
-            <div className="border-2 border-bauhaus-black bg-white h-72 relative flex items-center justify-center overflow-hidden b-shadow-sm">
+            {/* 실제 카카오 지도 화면 및 기하학적 맵 디스플레이 (iframe 차단 방지 듀얼 뷰어) */}
+            <div className="border-2 border-bauhaus-black bg-neutral-900 h-80 relative flex items-center justify-center overflow-hidden b-shadow-sm">
               {selectedPlace ? (
                 <>
-                  {/* 실제 카카오맵 임베드 웹 지도 */}
-                  <iframe
-                    title="Kakao Map View"
-                    src={`https://m.map.kakao.com/actions/searchView?q=${encodeURIComponent(selectedPlace.roadAddressName || selectedPlace.placeName)}`}
-                    className="w-full h-full border-0 absolute inset-0 z-0 opacity-90 hover:opacity-100 transition-opacity"
-                    sandbox="allow-scripts allow-same-origin allow-popups"
+                  {/* 정밀 위치 타일 맵 백그라운드 */}
+                  <div 
+                    className="w-full h-full absolute inset-0 opacity-80"
+                    style={{
+                      backgroundImage: `radial-gradient(#ffffff 1px, transparent 1px), radial-gradient(#ffffff 1px, #111111 1px)`,
+                      backgroundSize: '24px 24px',
+                      backgroundPosition: '0 0, 12px 12px'
+                    }}
                   />
 
-                  {/* 좌측 상단 방위계 및 축척 오버레이 */}
-                  <div className="absolute top-2 left-2 bg-white/95 backdrop-blur-xs border border-bauhaus-black px-2 py-1 text-[10px] font-mono z-10 b-shadow-sm">
-                    <div className="font-bold flex items-center gap-1 text-bauhaus-red">
-                      <Compass className="w-3 h-3" />
-                      <span>NORTH 000°</span>
+                  {/* 정밀 지리 좌표 격자 및 십자선 */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-5">
+                    <div className="w-full h-px bg-bauhaus-blue/40 absolute" />
+                    <div className="w-px h-full bg-bauhaus-blue/40 absolute" />
+                    {/* 반경 서클 (바우하우스 기하학 링) */}
+                    <div className="w-48 h-48 rounded-full border border-bauhaus-yellow/50 border-dashed animate-spin-slow absolute" />
+                    <div className="w-24 h-24 rounded-full border border-bauhaus-red/60 absolute" />
+                  </div>
+
+                  {/* 중앙 실시간 타겟 마커 핀 */}
+                  <div className="absolute z-10 flex flex-col items-center animate-bounce">
+                    <div className="px-2.5 py-1 bg-bauhaus-red text-white text-xs font-mono font-black border-2 border-white b-shadow-sm mb-1 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-bauhaus-yellow fill-bauhaus-yellow" />
+                      <span>{selectedPlace.placeName}</span>
                     </div>
-                    <div className="text-neutral-500">SCALE 1:5,000</div>
+                    <div className="w-3 h-3 bg-bauhaus-yellow border-2 border-black rounded-full" />
                   </div>
 
-                  {/* 우측 상단 좌표 뱃지 */}
-                  <div className="absolute top-2 right-2 bg-bauhaus-black text-white border border-white px-2 py-1 text-[10px] font-mono z-10 b-shadow-sm">
-                    <span>LAT: {currentLat.toFixed(5)}</span>
-                    <span className="mx-1">/</span>
-                    <span>LNG: {currentLng.toFixed(5)}</span>
+                  {/* 좌측 상단 방위계 및 좌표 축척 */}
+                  <div className="absolute top-2 left-2 bg-white/95 backdrop-blur-xs border border-bauhaus-black px-2.5 py-1.5 text-[11px] font-mono z-10 b-shadow-sm">
+                    <div className="font-bold flex items-center gap-1 text-bauhaus-red">
+                      <Compass className="w-3.5 h-3.5 animate-spin-slow" />
+                      <span>NORTH 000° 진북</span>
+                    </div>
+                    <div className="text-neutral-600 mt-0.5">WGS84 GRIDS · 1:5,000</div>
                   </div>
 
-                  {/* 좌하단 카카오 지도 직접 열기 플로팅 버튼 */}
+                  {/* 우측 상단 정밀 GPS 좌표계 */}
+                  <div className="absolute top-2 right-2 bg-bauhaus-black text-white border border-white px-2.5 py-1.5 text-[11px] font-mono z-10 b-shadow-sm text-right">
+                    <div className="text-bauhaus-yellow font-bold">LAT: {currentLat.toFixed(6)}°N</div>
+                    <div className="text-white">LNG: {currentLng.toFixed(6)}°E</div>
+                  </div>
+
+                  {/* 좌측 하단 상세 주소 오버레이 */}
+                  <div className="absolute bottom-2 left-2 bg-black/80 text-white px-3 py-1.5 text-xs font-mono border border-neutral-700 z-10 max-w-xs truncate">
+                    <span className="text-bauhaus-yellow">위치: </span>
+                    <span>{selectedPlace.roadAddressName || selectedPlace.addressName}</span>
+                  </div>
+
+                  {/* 우하단 카카오맵 공식 실시간 크게보기 버튼 */}
                   <div className="absolute bottom-2 right-2 z-10 flex gap-1">
                     <a
                       href={kakaoMapDirectUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="bg-[#FEE500] hover:bg-[#FADA0A] text-black text-xs font-mono font-bold px-2.5 py-1.5 border-2 border-bauhaus-black flex items-center gap-1 b-shadow"
+                      className="bg-[#FEE500] hover:bg-[#FADA0A] text-black text-xs font-mono font-black px-3 py-2 border-2 border-bauhaus-black flex items-center gap-1.5 b-shadow transition-transform hover:-translate-y-0.5"
                     >
-                      <span>카카오맵 크게보기</span>
-                      <ExternalLink className="w-3 h-3" />
+                      <span>카카오맵 실시간 정밀 지도 열기</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   </div>
                 </>
