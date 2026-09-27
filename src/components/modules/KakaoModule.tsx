@@ -6,6 +6,12 @@ import { ApiInspectionData, KakaoPlaceItem } from '../../types/api';
 import { KAKAO_PLACES_PRESET } from '../../data/mockData';
 import { ApiService } from '../../services/apiService';
 
+declare global {
+  interface Window {
+    kakao?: any;
+  }
+}
+
 interface KakaoModuleProps {
   isLive: boolean;
   kakaoKey: string;
@@ -20,11 +26,17 @@ export const KakaoModule: React.FC<KakaoModuleProps> = ({ isLive, kakaoKey, onIn
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mapLayerType, setMapLayerType] = useState<'street' | 'satellite'>('street');
+  const [useKakaoSdk, setUseKakaoSdk] = useState<boolean>(false);
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const tileLayerRef = useRef<L.TileLayer | null>(null);
-  const markerRef = useRef<L.Marker | null>(null);
+  // Leaflet references
+  const leafletMapRef = useRef<L.Map | null>(null);
+  const leafletTileRef = useRef<L.TileLayer | null>(null);
+  const leafletMarkerRef = useRef<L.Marker | null>(null);
+  // Kakao SDK references
+  const kakaoMapRef = useRef<any>(null);
+  const kakaoMarkerRef = useRef<any>(null);
+  const kakaoOverlayRef = useRef<any>(null);
 
   // 빠른 프리셋 목적지 (사용자 주요 관심 지역 및 학교)
   const quickPresets = [
@@ -102,132 +114,230 @@ export const KakaoModule: React.FC<KakaoModuleProps> = ({ isLive, kakaoKey, onIn
   const currentLat = selectedPlace ? parseFloat(selectedPlace.y) : 35.8239;
   const currentLng = selectedPlace ? parseFloat(selectedPlace.x) : 128.6083;
 
-  // 2. 실제 인터랙티브 지도 엔진 초기화 및 갱신
+  // 2. 카카오 지도 Web JS SDK 동적 로드 시도
+  useEffect(() => {
+    if (!kakaoKey) return;
+
+    if (window.kakao && window.kakao.maps) {
+      setUseKakaoSdk(true);
+      return;
+    }
+
+    const scriptId = 'kakao-maps-sdk-script';
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(kakaoKey.trim())}&autoload=false&libraries=services`;
+      script.async = true;
+      script.onload = () => {
+        if (window.kakao && window.kakao.maps) {
+          window.kakao.maps.load(() => {
+            setUseKakaoSdk(true);
+          });
+        }
+      };
+      script.onerror = () => {
+        console.warn('카카오 지도 JS SDK 로드 실패, 오픈 타일 지도 엔진으로 실행합니다.');
+        setUseKakaoSdk(false);
+      };
+      document.head.appendChild(script);
+    }
+  }, [kakaoKey]);
+
+  // 3. 실제 지도 렌더링 (카카오 공식 지도 SDK 또는 OpenStreetMap 표준 타일 지도)
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    // 지도 인스턴스가 없을 때 생성
-    if (!mapInstanceRef.current) {
-      const map = L.map(mapContainerRef.current, {
-        center: [currentLat, currentLng],
-        zoom: 16,
-        zoomControl: false,
-      });
+    if (useKakaoSdk && window.kakao && window.kakao.maps) {
+      // --- 카카오 공식 지도 SDK 렌더링 ---
+      // 기존 Leaflet 인스턴스 정리
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
+      }
 
-      // 기본 스트리트 타일 레이어
-      const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxZoom: 19,
-        subdomains: 'abcd',
-      }).addTo(map);
+      const moveLatLon = new window.kakao.maps.LatLng(currentLat, currentLng);
 
-      tileLayerRef.current = tileLayer;
-      mapInstanceRef.current = map;
-    }
+      if (!kakaoMapRef.current) {
+        mapContainerRef.current.innerHTML = '';
+        const options = {
+          center: moveLatLon,
+          level: 3,
+        };
+        const map = new window.kakao.maps.Map(mapContainerRef.current, options);
+        kakaoMapRef.current = map;
+      } else {
+        kakaoMapRef.current.panTo(moveLatLon);
+      }
 
-    const map = mapInstanceRef.current;
-    if (!map) return;
+      const map = kakaoMapRef.current;
 
-    // 지도 중심 부드럽게 이동
-    map.setView([currentLat, currentLng], 16, { animate: true });
+      // 기존 카카오 마커 & 오버레이 제거
+      if (kakaoMarkerRef.current) kakaoMarkerRef.current.setMap(null);
+      if (kakaoOverlayRef.current) kakaoOverlayRef.current.setMap(null);
 
-    // 기존 마커 제거 후 신규 마커 생성
-    if (markerRef.current) {
-      markerRef.current.remove();
-    }
+      if (selectedPlace) {
+        const marker = new window.kakao.maps.Marker({
+          position: moveLatLon,
+          map: map,
+        });
+        kakaoMarkerRef.current = marker;
 
-    if (selectedPlace) {
-      // 바우하우스 감성의 커스텀 HTML 핀 마커
-      const customPinHtml = `
-        <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
-          <div style="padding: 4px 8px; background-color: #D9381E; color: white; font-family: monospace; font-size: 11px; font-weight: 900; border: 2px solid black; white-space: nowrap; box-shadow: 3px 3px 0px #121212; margin-bottom: 2px; display: flex; align-items: center; gap: 4px;">
-            <span style="width: 8px; height: 8px; border-radius: 9999px; background-color: #F5A623; display: inline-block;"></span>
-            <span>${selectedPlace.placeName}</span>
+        const overlayContent = `
+          <div style="padding: 5px 10px; background: #D9381E; color: #fff; font-family: Pretendard, sans-serif; font-size: 11px; font-weight: bold; border: 2px solid #000; border-radius: 4px; box-shadow: 2px 2px 0px #000; transform: translateY(-40px); white-space: nowrap;">
+            📍 ${selectedPlace.placeName}
           </div>
-          <div style="width: 14px; height: 14px; background-color: #D9381E; border: 2px solid black; transform: rotate(45deg); margin-top: -6px; display: flex; align-items: center; justify-content: center;">
-            <div style="width: 4px; height: 4px; background-color: #F5A623; border-radius: 9999px;"></div>
-          </div>
-          <div style="width: 8px; height: 4px; background-color: rgba(0,0,0,0.4); border-radius: 9999px; margin-top: 2px;"></div>
-        </div>
-      `;
+        `;
 
-      const customIcon = L.divIcon({
-        className: 'custom-leaflet-marker',
-        html: customPinHtml,
-        iconSize: [30, 42],
-        iconAnchor: [15, 42],
-        popupAnchor: [0, -45],
-      });
-
-      const popupContent = `
-        <div style="font-family: Pretendard, -apple-system, BlinkMacSystemFont, sans-serif; min-width: 220px; padding: 4px;">
-          <div style="font-weight: 800; font-size: 14px; color: #121212; margin-bottom: 4px; border-bottom: 2px solid #121212; padding-bottom: 3px;">
-            ${selectedPlace.placeName}
-          </div>
-          <div style="font-size: 11px; color: #444; margin-bottom: 4px; line-height: 1.4;">
-            ${selectedPlace.roadAddressName || selectedPlace.addressName || '주소 정보'}
-          </div>
-          <div style="font-size: 10px; font-family: monospace; color: #0F4C81; margin-bottom: 8px; font-weight: bold;">
-            📍 ${currentLat.toFixed(5)}°N, ${currentLng.toFixed(5)}°E
-          </div>
-          <a href="${selectedPlace.placeUrl || `https://map.kakao.com/link/map/${encodeURIComponent(selectedPlace.placeName)},${currentLat},${currentLng}`}" 
-             target="_blank" 
-             rel="noreferrer"
-             style="display: block; width: 100%; text-align: center; background-color: #FEE500; color: #000; font-weight: 800; font-size: 11px; padding: 5px 0; border: 1.5px solid #000; text-decoration: none; box-shadow: 2px 2px 0px #000;">
-            카카오맵에서 크게 보기 ↗
-          </a>
-        </div>
-      `;
-
-      const newMarker = L.marker([currentLat, currentLng], { icon: customIcon })
-        .addTo(map)
-        .bindPopup(popupContent, { closeButton: true })
-        .openPopup();
-
-      markerRef.current = newMarker;
-    }
-
-    // 지도 렌더링 리프레시
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 150);
-  }, [selectedPlace, currentLat, currentLng]);
-
-  // 타일 레이어 전환 (일반 / 위성)
-  const handleLayerSwitch = (type: 'street' | 'satellite') => {
-    if (!mapInstanceRef.current || !tileLayerRef.current) return;
-    setMapLayerType(type);
-    mapInstanceRef.current.removeLayer(tileLayerRef.current);
-
-    let newTileLayer: L.TileLayer;
-    if (type === 'street') {
-      newTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        maxZoom: 19,
-        subdomains: 'abcd',
-      });
+        const customOverlay = new window.kakao.maps.CustomOverlay({
+          position: moveLatLon,
+          content: overlayContent,
+          yAnchor: 1,
+        });
+        customOverlay.setMap(map);
+        kakaoOverlayRef.current = customOverlay;
+      }
     } else {
-      newTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: '&copy; Esri &copy; Earthstar Geographics',
-        maxZoom: 19,
-      });
-    }
+      // --- OpenStreetMap 표준 오픈 타일 지도 (API Key 필요 없음) ---
+      if (!leafletMapRef.current) {
+        mapContainerRef.current.innerHTML = '';
+        const map = L.map(mapContainerRef.current, {
+          center: [currentLat, currentLng],
+          zoom: 16,
+          zoomControl: false,
+        });
 
-    newTileLayer.addTo(mapInstanceRef.current);
-    tileLayerRef.current = newTileLayer;
+        // 100% 무료 OpenStreetMap 공식 타일 서버 (워터마크 없음)
+        const tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19,
+        }).addTo(map);
+
+        leafletTileRef.current = tileLayer;
+        leafletMapRef.current = map;
+      }
+
+      const map = leafletMapRef.current;
+      if (!map) return;
+
+      map.setView([currentLat, currentLng], 16, { animate: true });
+
+      if (leafletMarkerRef.current) {
+        leafletMarkerRef.current.remove();
+      }
+
+      if (selectedPlace) {
+        const customPinHtml = `
+          <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
+            <div style="padding: 4px 8px; background-color: #D9381E; color: white; font-family: monospace; font-size: 11px; font-weight: 900; border: 2px solid black; white-space: nowrap; box-shadow: 3px 3px 0px #121212; margin-bottom: 2px; display: flex; align-items: center; gap: 4px;">
+              <span style="width: 8px; height: 8px; border-radius: 9999px; background-color: #F5A623; display: inline-block;"></span>
+              <span>${selectedPlace.placeName}</span>
+            </div>
+            <div style="width: 14px; height: 14px; background-color: #D9381E; border: 2px solid black; transform: rotate(45deg); margin-top: -6px; display: flex; align-items: center; justify-content: center;">
+              <div style="width: 4px; height: 4px; background-color: #F5A623; border-radius: 9999px;"></div>
+            </div>
+            <div style="width: 8px; height: 4px; background-color: rgba(0,0,0,0.4); border-radius: 9999px; margin-top: 2px;"></div>
+          </div>
+        `;
+
+        const customIcon = L.divIcon({
+          className: 'custom-leaflet-marker',
+          html: customPinHtml,
+          iconSize: [30, 42],
+          iconAnchor: [15, 42],
+          popupAnchor: [0, -45],
+        });
+
+        const popupContent = `
+          <div style="font-family: Pretendard, -apple-system, BlinkMacSystemFont, sans-serif; min-width: 220px; padding: 4px;">
+            <div style="font-weight: 800; font-size: 14px; color: #121212; margin-bottom: 4px; border-bottom: 2px solid #121212; padding-bottom: 3px;">
+              ${selectedPlace.placeName}
+            </div>
+            <div style="font-size: 11px; color: #444; margin-bottom: 4px; line-height: 1.4;">
+              ${selectedPlace.roadAddressName || selectedPlace.addressName || '주소 정보'}
+            </div>
+            <div style="font-size: 10px; font-family: monospace; color: #0F4C81; margin-bottom: 8px; font-weight: bold;">
+              📍 ${currentLat.toFixed(5)}°N, ${currentLng.toFixed(5)}°E
+            </div>
+            <a href="${selectedPlace.placeUrl || `https://map.kakao.com/link/map/${encodeURIComponent(selectedPlace.placeName)},${currentLat},${currentLng}`}" 
+               target="_blank" 
+               rel="noreferrer"
+               style="display: block; width: 100%; text-align: center; background-color: #FEE500; color: #000; font-weight: 800; font-size: 11px; padding: 5px 0; border: 1.5px solid #000; text-decoration: none; box-shadow: 2px 2px 0px #000;">
+              카카오맵에서 크게 보기 ↗
+            </a>
+          </div>
+        `;
+
+        const newMarker = L.marker([currentLat, currentLng], { icon: customIcon })
+          .addTo(map)
+          .bindPopup(popupContent, { closeButton: true })
+          .openPopup();
+
+        leafletMarkerRef.current = newMarker;
+      }
+
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 150);
+    }
+  }, [selectedPlace, currentLat, currentLng, useKakaoSdk]);
+
+  // 지도 유형 전환 (일반 / 위성)
+  const handleLayerSwitch = (type: 'street' | 'satellite') => {
+    setMapLayerType(type);
+
+    if (useKakaoSdk && kakaoMapRef.current && window.kakao?.maps) {
+      if (type === 'satellite') {
+        kakaoMapRef.current.setMapTypeId(window.kakao.maps.MapTypeId.HYBRID);
+      } else {
+        kakaoMapRef.current.setMapTypeId(window.kakao.maps.MapTypeId.ROADMAP);
+      }
+    } else if (leafletMapRef.current && leafletTileRef.current) {
+      leafletMapRef.current.removeLayer(leafletTileRef.current);
+
+      let newTileLayer: L.TileLayer;
+      if (type === 'street') {
+        newTileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors',
+          maxZoom: 19,
+        });
+      } else {
+        newTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          attribution: '&copy; Esri &copy; Earthstar Geographics',
+          maxZoom: 19,
+        });
+      }
+
+      newTileLayer.addTo(leafletMapRef.current);
+      leafletTileRef.current = newTileLayer;
+    }
   };
 
   const handleZoomIn = () => {
-    mapInstanceRef.current?.zoomIn();
+    if (useKakaoSdk && kakaoMapRef.current) {
+      const level = kakaoMapRef.current.getLevel();
+      kakaoMapRef.current.setLevel(Math.max(1, level - 1));
+    } else {
+      leafletMapRef.current?.zoomIn();
+    }
   };
 
   const handleZoomOut = () => {
-    mapInstanceRef.current?.zoomOut();
+    if (useKakaoSdk && kakaoMapRef.current) {
+      const level = kakaoMapRef.current.getLevel();
+      kakaoMapRef.current.setLevel(Math.min(14, level + 1));
+    } else {
+      leafletMapRef.current?.zoomOut();
+    }
   };
 
   const handleRecenter = () => {
-    mapInstanceRef.current?.setView([currentLat, currentLng], 16, { animate: true });
-    markerRef.current?.openPopup();
+    if (useKakaoSdk && kakaoMapRef.current && window.kakao?.maps) {
+      kakaoMapRef.current.panTo(new window.kakao.maps.LatLng(currentLat, currentLng));
+    } else {
+      leafletMapRef.current?.setView([currentLat, currentLng], 16, { animate: true });
+      leafletMarkerRef.current?.openPopup();
+    }
   };
 
   // 카카오맵 길찾기 및 로드뷰 공식 링크 생성
@@ -523,7 +633,7 @@ export const KakaoModule: React.FC<KakaoModuleProps> = ({ isLive, kakaoKey, onIn
               </div>
             </div>
 
-            {/* 실제 지도 컨테이너 (Leaflet / OSM / CartoDB Voyager 엔진) */}
+            {/* 실제 지도 컨테이너 */}
             <div className="border-2 border-bauhaus-black h-[380px] w-full relative z-0 overflow-hidden b-shadow-sm">
               <div ref={mapContainerRef} className="w-full h-full" style={{ minHeight: '380px' }} />
 
