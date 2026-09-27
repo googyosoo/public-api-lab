@@ -230,14 +230,38 @@ export const ApiService = {
       const dd = String(now.getDate()).padStart(2, '0');
       const mlsvYmd = `${yyyy}${mm}${dd}`;
 
-      const mealUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${encodeURIComponent(cleanKey)}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${preset.officeCode}&SD_SCHUL_CODE=${preset.code}&MLSV_YMD=${mlsvYmd}`;
+      // 오늘 일자 급식 조회
+      let mealUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${encodeURIComponent(cleanKey)}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${preset.officeCode}&SD_SCHUL_CODE=${preset.code}&MLSV_YMD=${mlsvYmd}`;
 
-      const res = await fetch(mealUrl);
-      const json = await res.json();
-      const duration = Math.round(performance.now() - startTime);
+      let res = await fetch(mealUrl);
+      let json = await res.json();
+      let duration = Math.round(performance.now() - startTime);
 
-      // 나이스 에러 코드 검사 (RESULT.CODE !== 'INFO-000')
-      if (json.RESULT && json.RESULT.CODE !== 'INFO-000') {
+      // 만약 오늘 급식이 없는 경우 (INFO-200: 주말, 공휴일, 방학 등)
+      // 최근 14일 전부터 오늘까지의 최근 급식 데이터를 자동으로 2차 조회
+      let isHolidayOrNoMealToday = false;
+      if (json?.RESULT?.CODE === 'INFO-200') {
+        isHolidayOrNoMealToday = true;
+        const pastDate = new Date();
+        pastDate.setDate(pastDate.getDate() - 14);
+        const fromYmd = `${pastDate.getFullYear()}${String(pastDate.getMonth() + 1).padStart(2, '0')}${String(pastDate.getDate()).padStart(2, '0')}`;
+        
+        mealUrl = `https://open.neis.go.kr/hub/mealServiceDietInfo?KEY=${encodeURIComponent(cleanKey)}&Type=json&pIndex=1&pSize=5&ATPT_OFCDC_SC_CODE=${preset.officeCode}&SD_SCHUL_CODE=${preset.code}&MLSV_FROM_YMD=${fromYmd}&MLSV_TO_YMD=${mlsvYmd}`;
+        try {
+          const recentRes = await fetch(mealUrl);
+          if (recentRes.ok) {
+            const recentJson = await recentRes.json();
+            if (recentJson?.mealServiceDietInfo?.[1]?.row?.length) {
+              json = recentJson;
+            }
+          }
+        } catch (recentErr) {
+          console.warn('나이스 최근 급식 보조 조회:', recentErr);
+        }
+      }
+
+      // 치명적 인증 에러 또는 시스템 오류인 경우에만 error 반환 (INFO-200은 데이터 없음 안내이므로 제외)
+      if (json.RESULT && json.RESULT.CODE !== 'INFO-000' && json.RESULT.CODE !== 'INFO-200') {
         return {
           data: preset.data,
           error: `나이스 API 오류 (${json.RESULT.CODE}): ${json.RESULT.MESSAGE}`,
@@ -256,8 +280,9 @@ export const ApiService = {
         };
       }
 
-      let parsedData = { ...preset.data };
-      const row = json?.mealServiceDietInfo?.[1]?.row?.[0];
+      let parsedData: ParsedNeisData = { ...preset.data };
+      const rows = json?.mealServiceDietInfo?.[1]?.row;
+      const row = Array.isArray(rows) ? rows[rows.length - 1] : undefined; // 가장 최신 일자 급식
 
       if (row) {
         const rawDishes = row.DDISH_NM || '';
@@ -266,11 +291,25 @@ export const ApiService = {
           .map((d: string) => d.replace(/[\(\)0-9\.]/g, '').trim())
           .filter(Boolean);
 
+        const mealDateStr = row.MLSV_YMD ? `${row.MLSV_YMD.slice(0, 4)}-${row.MLSV_YMD.slice(4, 6)}-${row.MLSV_YMD.slice(6, 8)}` : row.MLSV_YMD;
+        const isPastMeal = row.MLSV_YMD !== mlsvYmd;
+
         parsedData.todayMeal = {
           date: row.MLSV_YMD,
-          mealType: `${row.MMEAL_SC_NM || '중식'} (${preset.schoolName})`,
+          mealType: isPastMeal 
+            ? `${row.MMEAL_SC_NM || '중식'} (최근 제공일: ${mealDateStr})`
+            : `${row.MMEAL_SC_NM || '오늘의 중식'} (${preset.schoolName})`,
           dishes: dishes.length > 0 ? dishes : ['급식 정보가 등록되지 않았습니다.'],
           calories: row.CAL_INFO || '정보 없음',
+          origin: preset.data.todayMeal.origin,
+          nutrients: preset.data.todayMeal.nutrients
+        };
+      } else if (isHolidayOrNoMealToday) {
+        parsedData.todayMeal = {
+          date: mlsvYmd,
+          mealType: `중식 (휴일/방학 안내)`,
+          dishes: ['주말·공휴일 또는 방학 기간으로 오늘 급식 일정이 없습니다.'],
+          calories: '-',
           origin: preset.data.todayMeal.origin,
           nutrients: preset.data.todayMeal.nutrients
         };
@@ -1045,7 +1084,7 @@ export const ApiService = {
         numOfRows: '12',
         pageNo: '1',
         MobileOS: 'ETC',
-        MobileApp: 'BauhausApiLab',
+        MobileApp: 'PublicApiLab',
         _type: 'json',
         listYN: 'Y',
         arrange: 'A'

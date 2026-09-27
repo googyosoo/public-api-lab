@@ -17,7 +17,7 @@ export const BookModule: React.FC<BookModuleProps> = ({
   kakaoKey,
   onInspected
 }) => {
-  const [query, setQuery] = useState<string>('바우하우스');
+  const [query, setQuery] = useState<string>('인공지능');
   const [sourceFilter, setSourceFilter] = useState<'all' | 'kakao' | 'nl'>('all');
   const [books, setBooks] = useState<BookSearchItem[]>([]);
   const [loading, setLoading] = useState(false);

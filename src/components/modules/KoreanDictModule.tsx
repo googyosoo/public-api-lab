@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, Search, ExternalLink, RefreshCw, Bookmark, Sparkles } from 'lucide-react';
 import { ApiService } from '../../services/apiService';
 import { DictWordItem, ApiInspectionData } from '../../types/api';
@@ -10,12 +10,12 @@ interface KoreanDictModuleProps {
 }
 
 export const KoreanDictModule: React.FC<KoreanDictModuleProps> = ({ isLive, koreanKey, onInspected }) => {
-  const [searchTerm, setSearchTerm] = useState<string>('바우하우스');
+  const [searchTerm, setSearchTerm] = useState<string>('인공지능');
   const [dictResults, setDictResults] = useState<DictWordItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const presets = ['바우하우스', '인공지능', '학교', '알고리즘', '가을'];
+  const presets = ['인공지능', '데이터', '학교', '알고리즘', '대한민국'];
 
   const searchDict = async (wordToSearch: string) => {
     setLoading(true);

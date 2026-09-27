@@ -768,21 +768,6 @@ export const TOUR_PRESETS: Record<string, { areaName: string; items: TourItem[];
 
 // 8. 국립국어원 한국어기초사전 프리셋 데이터
 export const DICT_PRESETS: Record<string, DictWordItem[]> = {
-  '바우하우스': [
-    {
-      targetCode: '85012',
-      word: '바우하우스',
-      part: '명사',
-      origin: 'Bauhaus',
-      definition: '1919년 독일의 건축가 발터 그로피우스가 바이마르에 설립한 조형 예술 학교. 예술과 기술의 조화, 기능주의적 조형미를 추구하여 현대 산업 디자인의 기초를 확립하였다.',
-      pos: '일반명사',
-      link: 'https://krdict.korean.go.kr/kor/dicSearch/search?nation=kor&ParaWordNo=85012',
-      examples: [
-        '현대 가구와 건축 디자인의 모더니즘 양식은 바우하우스의 기능주의 철학에 깊이 뿌리내리고 있다.',
-        '그의 작업실은 바우하우스풍의 간결한 철제 프레임과 절제된 3원색 조화가 인상적이었다.'
-      ]
-    }
-  ],
   '인공지능': [
     {
       targetCode: '63201',
@@ -795,6 +780,21 @@ export const DICT_PRESETS: Record<string, DictWordItem[]> = {
       examples: [
         '최근 인공지능 기술의 발전으로 대규모 공공데이터 분석과 자동화가 급속도로 확산되고 있다.',
         '학교 현장에서도 인공지능 기반 디지털 보조 교구를 활용한 맞춤형 학습이 진행 중이다.'
+      ]
+    }
+  ],
+  '데이터': [
+    {
+      targetCode: '42189',
+      word: '데이터',
+      part: '명사',
+      origin: 'data',
+      definition: '이론을 세우는 데 기초가 되는 사실. 또는 바탕이 되는 자료. 컴퓨터 분야에서는 프로그램 운용에 필요한 입력 정보나 처리 결과를 이른다.',
+      pos: '외래어',
+      link: 'https://krdict.korean.go.kr/kor/dicSearch/search?nation=kor&ParaWordNo=42189',
+      examples: [
+        '공공데이터 포털을 통해 시민 누구나 실시간 행정 정보를 조회할 수 있다.',
+        '축적된 기상 데이터를 바탕으로 다음 주 강수 확률을 예측하였다.'
       ]
     }
   ],

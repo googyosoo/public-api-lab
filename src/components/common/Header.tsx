@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="bg-bauhaus-black text-white px-4 py-1 text-xs font-mono flex items-center justify-between overflow-x-auto whitespace-nowrap">
         <div className="flex items-center gap-3">
           <span className="bg-bauhaus-red text-white px-1.5 py-0.2 font-bold uppercase tracking-wider">LAB V1.0</span>
-          <span>BAUHAUS FUNCTIONAL OPEN API EXPERIMENTAL STATION</span>
+          <span>PUBLIC DATA OPEN API EXPERIMENTAL LAB</span>
           <span className="text-neutral-400">· FORM FOLLOWS FUNCTION</span>
         </div>
         <div className="flex items-center gap-4 text-[11px] text-neutral-300">
@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* 메인 헤더 바 */}
       <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          {/* 바우하우스 3원색 기하학 심볼 마크 */}
+          {/* 3원색 기하학 심볼 마크 */}
           <div className="flex items-center gap-1 border-2 border-bauhaus-black p-1 bg-white b-shadow-sm">
             <div className="w-5 h-5 rounded-full bg-bauhaus-red flex items-center justify-center text-white text-[10px] font-black">●</div>
             <div className="w-5 h-5 bg-bauhaus-blue flex items-center justify-center text-white text-[10px] font-black">■</div>
@@ -60,14 +60,14 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl md:text-2xl font-black tracking-tight uppercase font-sans">
-                BAUHAUS API LAB
+                PUBLIC API LAB
               </h1>
               <span className="text-[10px] font-mono border border-bauhaus-black bg-white px-1.5 py-0.5 uppercase font-bold">
                 대백과 에디션
               </span>
             </div>
             <p className="text-xs text-neutral-600 font-mono">
-              국가 공공데이터포털 & 무료 API를 시각화하는 기능주의 인터랙티브 실험실
+              국가 공공데이터포털 & 무료 공공 API를 실시간 탐색하는 인터랙티브 실험실
             </p>
           </div>
         </div>

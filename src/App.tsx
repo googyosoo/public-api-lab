@@ -116,13 +116,13 @@ export const App: React.FC = () => {
         <CodeInspector inspectData={currentInspection} />
       </main>
 
-      {/* 바우하우스 푸터 */}
+      {/* 푸터 */}
       <footer className="border-t-2 border-bauhaus-black bg-white mt-12 py-8 px-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs text-neutral-600">
           <div>
             <div className="font-bold text-bauhaus-black flex items-center gap-2">
               <span className="w-3 h-3 bg-bauhaus-red inline-block"></span>
-              <span>BAUHAUS API LABORATORY // 2026 EDITION</span>
+              <span>PUBLIC API LABORATORY // 2026 EDITION</span>
             </div>
             <p className="mt-1 text-[11px] text-neutral-500">
               기획·설계 기반: 도키피디아 「API키 대백과 — 종류·발급·요금」 (도쌤)
