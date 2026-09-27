@@ -22,10 +22,12 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'neis', label: '나이스 교육정보', symbol: '■', badge: 'NEIS' },
     { id: 'air', label: '에어코리아 대기', symbol: '▲', badge: 'ENV' },
     { id: 'kasi', label: '천문연 특일/월령', symbol: '◆', badge: 'ASTRO' },
-    { id: 'book', label: '국립도서관·카카오 책', symbol: '▰', badge: 'NL·KAKAO' },
-    { id: 'webhook', label: '디스코드 웹훅', symbol: '▶', badge: 'HOOK' },
+    { id: 'book', label: '국립도서관·카카오', symbol: '▰', badge: 'NL·BOOK' },
     { id: 'kakao', label: '카카오 장소/지도', symbol: '𝌆', badge: 'MAP' },
-    { id: 'gemini', label: '제미나이 AI인사이트', symbol: '★', badge: 'AI' },
+    { id: 'tour', label: '한국관광공사 명소', symbol: '◎', badge: 'TOUR' },
+    { id: 'korean', label: '국립국어원 사전', symbol: '◈', badge: 'DICT' },
+    { id: 'drug', label: '식약처 의약품', symbol: '✚', badge: 'DRUG' },
+    { id: 'realestate', label: '국토부 실거래가', symbol: '▥', badge: 'MOLIT' },
   ];
 
   return (
@@ -92,9 +94,9 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 8대 API 모듈 탭 네비게이션: 가로 스크롤 없이 한 화면에 8개 전체 배치 */}
+      {/* 10대 API 모듈 탭 네비게이션 */}
       <div className="border-t-2 border-bauhaus-black bg-neutral-100">
-        <div className="max-w-7xl mx-auto grid grid-cols-4 md:grid-cols-8 border-l-2 border-bauhaus-black">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 border-l-2 border-bauhaus-black">
           {tabs.map((tab) => {
             const isActive = activeCategory === tab.id;
             return (

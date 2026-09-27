@@ -4,15 +4,22 @@ const STORAGE_KEY = 'BAUHAUS_API_LAB_KEYS_V1';
 
 const ENV = (import.meta as any).env || {};
 
+const COMMON_PUBLIC_KEY = 
+  ENV.VITE_PUBLIC_DATA_KEY || 
+  ENV.VITE_KMA_KEY || 
+  'b%2BCyVpC58a2hFGho34vflH5YO0%2F0fWeNb0xO2r%2FMTx1erJXlBXFxkpDg8y7GfL0YtZQmu43w9RFwtuscLv7fcQ%3D%3D';
+
 const DEFAULT_KEYS: ApiKeyStore = {
-  kmaKey: ENV.VITE_KMA_KEY || 'b%2BCyVpC58a2hFGho34vflH5YO0%2F0fWeNb0xO2r%2FMTx1erJXlBXFxkpDg8y7GfL0YtZQmu43w9RFwtuscLv7fcQ%3D%3D',
+  kmaKey: ENV.VITE_KMA_KEY || COMMON_PUBLIC_KEY,
   neisKey: ENV.VITE_NEIS_KEY || 'df916e24d7174474998b7e50707c841e',
-  airKey: ENV.VITE_AIR_KEY || 'b%2BCyVpC58a2hFGho34vflH5YO0%2F0fWeNb0xO2r%2FMTx1erJXlBXFxkpDg8y7GfL0YtZQmu43w9RFwtuscLv7fcQ%3D%3D',
-  kasiKey: ENV.VITE_KASI_KEY || 'b%2BCyVpC58a2hFGho34vflH5YO0%2F0fWeNb0xO2r%2FMTx1erJXlBXFxkpDg8y7GfL0YtZQmu43w9RFwtuscLv7fcQ%3D%3D',
+  airKey: ENV.VITE_AIR_KEY || COMMON_PUBLIC_KEY,
+  kasiKey: ENV.VITE_KASI_KEY || COMMON_PUBLIC_KEY,
   nlKey: ENV.VITE_NL_KEY || '9cbae0b900d62767e4be4ab30a850abd33c7f640a22d7d3e4095eb2b68d0cb73',
-  webhookUrl: ENV.VITE_DISCORD_WEBHOOK_URL || '',
   kakaoKey: ENV.VITE_KAKAO_KEY || '6958dfb0128de91294f6f8116cda8db1',
-  geminiKey: ENV.VITE_GEMINI_KEY || ''
+  tourKey: ENV.VITE_TOUR_KEY || COMMON_PUBLIC_KEY,
+  koreanKey: ENV.VITE_KOREAN_DICT_KEY || '',
+  drugKey: ENV.VITE_DRUG_KEY || COMMON_PUBLIC_KEY,
+  realestateKey: ENV.VITE_REALESTATE_KEY || COMMON_PUBLIC_KEY,
 };
 
 export const KeyVault = {
@@ -27,9 +34,11 @@ export const KeyVault = {
         airKey: saved.airKey || DEFAULT_KEYS.airKey,
         kasiKey: saved.kasiKey || DEFAULT_KEYS.kasiKey,
         nlKey: saved.nlKey || DEFAULT_KEYS.nlKey,
-        webhookUrl: saved.webhookUrl || DEFAULT_KEYS.webhookUrl,
         kakaoKey: saved.kakaoKey || DEFAULT_KEYS.kakaoKey,
-        geminiKey: saved.geminiKey || DEFAULT_KEYS.geminiKey,
+        tourKey: saved.tourKey || DEFAULT_KEYS.tourKey,
+        koreanKey: saved.koreanKey || DEFAULT_KEYS.koreanKey,
+        drugKey: saved.drugKey || DEFAULT_KEYS.drugKey,
+        realestateKey: saved.realestateKey || DEFAULT_KEYS.realestateKey,
       };
     } catch {
       return DEFAULT_KEYS;
@@ -55,7 +64,7 @@ export const KeyVault = {
 
   // 마스킹 처리 (앞 4글자, 뒤 3글자 노출)
   maskKey(key: string): string {
-    if (!key) return '(키 미등록 - 실제 API 인증키 필요)';
+    if (!key) return '(키 미등록 - 프리셋 모드로 안전 동작)';
     if (key.length <= 8) return '••••••••';
     return `${key.slice(0, 4)}••••${key.slice(-3)}`;
   },
@@ -103,14 +112,6 @@ export const KeyVault = {
           cost: '완전 무료 (일 5,000회~)',
           authMethod: '인증키 쿼리 파라미터 (key)',
         };
-      case 'webhookUrl':
-        return {
-          title: 'Discord / Slack 웹훅 URL',
-          url: 'https://support.discord.com/hc/ko/articles/228383668',
-          type: '채널 설정 → 연동 → 웹훅',
-          cost: '완전 무료',
-          authMethod: '비밀 Webhook URL POST',
-        };
       case 'kakaoKey':
         return {
           title: '카카오 REST API (도서 검색 & 좌표변환 공통)',
@@ -119,13 +120,37 @@ export const KeyVault = {
           cost: '무료 (일 30,000회 Daum 책 검색)',
           authMethod: 'KakaoAK 헤더 (Authorization)',
         };
-      case 'geminiKey':
+      case 'tourKey':
         return {
-          title: 'Google Gemini AI API',
-          url: 'https://aistudio.google.com/apikey',
-          type: 'Google AI Studio',
-          cost: '무료 티어 (RPM 15회 제공)',
-          authMethod: 'x-goog-api-key 헤더 / 쿼리',
+          title: '한국관광공사 국문관광정보 TourAPI 4.0',
+          url: 'https://www.data.go.kr/data/15101578/openapi.do',
+          type: '공공데이터포털 (data.go.kr)',
+          cost: '완전 무료',
+          authMethod: '공공데이터포털 일반 인증키(serviceKey)',
+        };
+      case 'koreanKey':
+        return {
+          title: '국립국어원 한국어기초사전 Open API',
+          url: 'https://krdict.korean.go.kr/openApi/openApiInfo',
+          type: '국립국어원 개방형 사전 오픈API',
+          cost: '완전 무료',
+          authMethod: '인증키 파라미터 (key / certkey_no)',
+        };
+      case 'drugKey':
+        return {
+          title: '식품의약품안전처 의약품개요정보(e약은요)',
+          url: 'https://www.data.go.kr/data/1471000/openapi.do',
+          type: '공공데이터포털 (data.go.kr)',
+          cost: '완전 무료',
+          authMethod: '공공데이터포털 일반 인증키(serviceKey)',
+        };
+      case 'realestateKey':
+        return {
+          title: '국토교통부 아파트매매 실거래자료 API',
+          url: 'https://www.data.go.kr/data/15057511/openapi.do',
+          type: '공공데이터포털 (data.go.kr)',
+          cost: '완전 무료',
+          authMethod: '공공데이터포털 일반 인증키(serviceKey)',
         };
     }
   }

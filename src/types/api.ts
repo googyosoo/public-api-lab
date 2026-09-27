@@ -1,13 +1,15 @@
 // API 모듈 식별자
 export type ApiCategory = 
-  | 'kma'       // 기상청 단기예보
-  | 'neis'      // 나이스 교육정보
-  | 'air'       // 에어코리아 대기오염
-  | 'kasi'      // 천문연구원 월령/특일
-  | 'book'      // 국립중앙도서관 & 카카오 책 검색
-  | 'webhook'   // 디스코드/슬랙 웹훅
-  | 'kakao'     // 카카오 주소/좌표
-  | 'gemini';   // 구글 제미나이 AI
+  | 'kma'         // 기상청 단기예보
+  | 'neis'        // 나이스 교육정보
+  | 'air'         // 에어코리아 대기오염
+  | 'kasi'        // 천문연구원 월령/특일
+  | 'book'        // 국립중앙도서관 & 카카오 책 검색
+  | 'kakao'       // 카카오 주소/좌표
+  | 'tour'        // 한국관광공사 TourAPI 4.0
+  | 'korean'      // 국립국어원 한국어기초사전
+  | 'drug'        // 식품의약품안전처 e약은요 의약품개요
+  | 'realestate'; // 국토교통부 아파트 실거래가
 
 // API 키 보관소 상태
 export interface ApiKeyStore {
@@ -15,10 +17,12 @@ export interface ApiKeyStore {
   neisKey: string;
   airKey: string;
   kasiKey: string;
-  nlKey: string;       // 국립중앙도서관 Open API 키
-  webhookUrl: string;
-  kakaoKey: string;    // 카카오 REST API 키 (지도+도서 공통)
-  geminiKey: string;
+  nlKey: string;        // 국립중앙도서관 Open API 키
+  kakaoKey: string;     // 카카오 REST API 키 (지도+도서 공통)
+  tourKey: string;      // 한국관광공사 TourAPI 키 (공공데이터포털 일반 인증키)
+  koreanKey: string;    // 국립국어원 Open API 키
+  drugKey: string;      // 식약처 의약품개요정보 키 (공공데이터포털 일반 인증키)
+  realestateKey: string;// 국토부 아파트실거래가 키 (공공데이터포털 일반 인증키)
 }
 
 // 인스펙터에 전달할 메타데이터
@@ -163,11 +167,63 @@ export interface KakaoPlaceItem {
   distance?: string;
 }
 
-// 웹훅 전송 결과 타입
-export interface WebhookResult {
-  success: boolean;
-  timestamp: string;
-  previewMessage: string;
-  channelName?: string;
-  statusText: string;
+// 한국관광공사 TourAPI 데이터 타입
+export interface TourItem {
+  contentId: string;
+  title: string;
+  contentTypeId: string;
+  contentTypeName: string;
+  address: string;
+  tel?: string;
+  imageUrl?: string;
+  thumbnailUrl?: string;
+  mapX: string;
+  mapY: string;
+  areaCode: string;
+  areaName: string;
+  eventStartDate?: string;
+  eventEndDate?: string;
+  overview?: string;
+}
+
+// 국립국어원 한국어기초사전 데이터 타입
+export interface DictWordItem {
+  targetCode: string;
+  word: string;
+  part: string;          // 명사, 동사, 형용사 등
+  origin?: string;        // 한자/외래어 어원
+  definition: string;    // 어휘 정의/뜻풀이
+  pos: string;
+  link: string;          // 사전 상세 웹 링크
+  examples: string[];    // 용례/예문
+}
+
+// 식품의약품안전처 e약은요 의약품 개요정보 데이터 타입
+export interface DrugInfoItem {
+  itemSeq: string;
+  itemName: string;
+  entpName: string;       // 제약회사
+  efcyQesitm: string;     // 효능효과
+  useMethodQesitm: string;// 용법용량
+  atpnWarnQesitm?: string;// 복용 전 주의사항 경고
+  atpnQesitm?: string;    // 주의사항
+  intrcQesitm?: string;   // 상호작용 (병용 주의)
+  seQesitm?: string;      // 부작용
+  depositMethodQesitm?: string; // 보관법
+  itemImage?: string;     // 낱알/포장 이미지 URL
+}
+
+// 국토교통부 아파트 매매 실거래가 데이터 타입
+export interface AptTradeItem {
+  aptName: string;        // 아파트 단지명
+  dealAmount: number;     // 거래금액 (만원)
+  dealYear: number;
+  dealMonth: number;
+  dealDay: number;
+  excluUseAr: number;     // 전용면적 (m2)
+  floor: number;          // 층수
+  dong: string;           // 법정동
+  buildYear: number;      // 건축년도
+  jibun?: string;
+  cancelDealType?: string;// 해제여부
 }

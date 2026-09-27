@@ -7,9 +7,11 @@ import { NeisModule } from './components/modules/NeisModule';
 import { AirModule } from './components/modules/AirModule';
 import { AstroModule } from './components/modules/AstroModule';
 import { BookModule } from './components/modules/BookModule';
-import { WebhookModule } from './components/modules/WebhookModule';
 import { KakaoModule } from './components/modules/KakaoModule';
-import { GeminiModule } from './components/modules/GeminiModule';
+import { TourModule } from './components/modules/TourModule';
+import { KoreanDictModule } from './components/modules/KoreanDictModule';
+import { DrugModule } from './components/modules/DrugModule';
+import { RealEstateModule } from './components/modules/RealEstateModule';
 import { KeyVault } from './services/keyVault';
 import { ApiCategory, ApiInspectionData, ApiKeyStore } from './types/api';
 
@@ -74,13 +76,6 @@ export const App: React.FC = () => {
             onInspected={setCurrentInspection}
           />
         )}
-        {activeCategory === 'webhook' && (
-          <WebhookModule
-            isLive={isLive}
-            webhookUrl={keys.webhookUrl}
-            onInspected={setCurrentInspection}
-          />
-        )}
         {activeCategory === 'kakao' && (
           <KakaoModule
             isLive={isLive}
@@ -88,10 +83,31 @@ export const App: React.FC = () => {
             onInspected={setCurrentInspection}
           />
         )}
-        {activeCategory === 'gemini' && (
-          <GeminiModule
+        {activeCategory === 'tour' && (
+          <TourModule
             isLive={isLive}
-            geminiKey={keys.geminiKey}
+            tourKey={keys.tourKey}
+            onInspected={setCurrentInspection}
+          />
+        )}
+        {activeCategory === 'korean' && (
+          <KoreanDictModule
+            isLive={isLive}
+            koreanKey={keys.koreanKey}
+            onInspected={setCurrentInspection}
+          />
+        )}
+        {activeCategory === 'drug' && (
+          <DrugModule
+            isLive={isLive}
+            drugKey={keys.drugKey}
+            onInspected={setCurrentInspection}
+          />
+        )}
+        {activeCategory === 'realestate' && (
+          <RealEstateModule
+            isLive={isLive}
+            realestateKey={keys.realestateKey}
             onInspected={setCurrentInspection}
           />
         )}
@@ -112,12 +128,14 @@ export const App: React.FC = () => {
               기획·설계 기반: 도키피디아 「API키 대백과 — 종류·발급·요금」 (도쌤)
             </p>
           </div>
-          <div className="flex items-center gap-4 text-[11px]">
-            <span>공공데이터포털(data.go.kr)</span>
+          <div className="flex items-center gap-2 text-[11px] flex-wrap justify-end">
+            <span>공공데이터포털(기상청·에어코리아·천문연·관광공사·식약처·국토부)</span>
             <span>·</span>
-            <span>나이스 교육정보개방포털(open.neis.go.kr)</span>
+            <span>나이스(NEIS)</span>
             <span>·</span>
-            <span className="font-bold text-bauhaus-blue">LOCAL STORAGE VAULT</span>
+            <span>국립국어원</span>
+            <span>·</span>
+            <span className="font-bold text-bauhaus-blue">100% REAL-TIME LIVE NETWORK</span>
           </div>
         </div>
       </footer>

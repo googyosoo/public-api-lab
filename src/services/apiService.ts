@@ -1,5 +1,27 @@
-import { ApiInspectionData, ParsedWeather, ParsedNeisData, AirQualityData, AstroData, BookSearchItem, KakaoPlaceItem } from '../types/api';
-import { WEATHER_PRESETS, NEIS_PRESETS, AIR_PRESETS, ASTRO_DATA, BOOK_SEARCH_PRESET } from '../data/mockData';
+import { 
+  ApiInspectionData, 
+  ParsedWeather, 
+  ParsedNeisData, 
+  AirQualityData, 
+  AstroData, 
+  BookSearchItem, 
+  KakaoPlaceItem,
+  TourItem,
+  DictWordItem,
+  DrugInfoItem,
+  AptTradeItem
+} from '../types/api';
+import { 
+  WEATHER_PRESETS, 
+  NEIS_PRESETS, 
+  AIR_PRESETS, 
+  ASTRO_DATA, 
+  BOOK_SEARCH_PRESET,
+  TOUR_PRESETS,
+  DICT_PRESETS,
+  DRUG_PRESETS,
+  REAL_ESTATE_PRESETS
+} from '../data/mockData';
 
 export const ApiService = {
   // 1. 기상청 단기예보 조회 (100% 실시간 통신 모드)
@@ -765,97 +787,6 @@ export const ApiService = {
     }
   },
 
-  // 6. 디스코드 웹훅 발송 (100% 실시간 전송 모드)
-  async sendWebhook(
-    webhookUrl: string,
-    payload: { username: string; content: string; embeds?: any[] }
-  ): Promise<{ success: boolean; inspect: ApiInspectionData; error?: string }> {
-    const startTime = performance.now();
-    const cleanUrl = (webhookUrl || '').trim();
-
-    if (!cleanUrl || !cleanUrl.startsWith('https://discord.com/api/webhooks/')) {
-      const duration = Math.round(performance.now() - startTime);
-      return {
-        success: false,
-        error: '유효한 Discord 웹훅 URL이 등록되지 않았습니다. [키 보관소]에서 웹훅 URL을 입력해 주세요.',
-        inspect: {
-          title: 'Discord Webhook (URL 미등록)',
-          category: 'webhook',
-          endpoint: 'https://discord.com/api/webhooks/YOUR_TOKEN',
-          method: 'POST',
-          body: payload,
-          rawResponse: { error: 'MissingWebhookUrl', message: 'Discord 웹훅 URL이 필요합니다.' },
-          status: 400,
-          durationMs: duration,
-          curlCommand: `curl -X POST -H "Content-Type: application/json" -d '${JSON.stringify(payload)}' "https://discord.com/api/webhooks/YOUR_TOKEN"`,
-          fetchSnippet: `// 웹훅 발송을 위해 올바른 Discord 웹훅 URL이 필요합니다.`
-        }
-      };
-    }
-
-    try {
-      const res = await fetch(cleanUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const duration = Math.round(performance.now() - startTime);
-
-      if (!res.ok) {
-        return {
-          success: false,
-          error: `Discord 웹훅 전송 실패 (HTTP ${res.status}): ${res.statusText}`,
-          inspect: {
-            title: `Discord Webhook 오류 (${res.status})`,
-            category: 'webhook',
-            endpoint: cleanUrl,
-            method: 'POST',
-            body: payload,
-            rawResponse: { status: res.status, statusText: res.statusText },
-            status: res.status,
-            durationMs: duration,
-            curlCommand: `curl -X POST -H "Content-Type: application/json" -d '${JSON.stringify(payload)}' "${cleanUrl}"`,
-            fetchSnippet: `fetch("${cleanUrl}", { method: "POST" });`
-          }
-        };
-      }
-
-      return {
-        success: true,
-        inspect: {
-          title: 'Discord Webhook HTTP POST (LIVE 실시간 전송)',
-          category: 'webhook',
-          endpoint: cleanUrl,
-          method: 'POST',
-          body: payload,
-          rawResponse: { success: true, status: res.status, statusText: res.statusText },
-          status: res.status,
-          durationMs: duration,
-          curlCommand: `curl -X POST -H "Content-Type: application/json" -d '${JSON.stringify(payload)}' "${cleanUrl}"`,
-          fetchSnippet: `fetch("${cleanUrl}", {\n  method: "POST",\n  headers: { "Content-Type": "application/json" },\n  body: JSON.stringify(${JSON.stringify(payload, null, 2)})\n});`
-        }
-      };
-    } catch (err: any) {
-      const duration = Math.round(performance.now() - startTime);
-      return {
-        success: false,
-        error: `Discord 웹훅 통신 실패: ${err?.message || '네트워크 오류'}`,
-        inspect: {
-          title: 'Discord Webhook 네트워크 오류',
-          category: 'webhook',
-          endpoint: cleanUrl,
-          method: 'POST',
-          body: payload,
-          rawResponse: { error: String(err) },
-          status: 0,
-          durationMs: duration,
-          curlCommand: `curl -X POST -H "Content-Type: application/json" "${cleanUrl}"`,
-          fetchSnippet: `// 네트워크 오류 발생`
-        }
-      };
-    }
-  },
-
   // 7. 카카오 로컬 주소 검색 (지오코딩 address.json) - 100% 실시간 통신 모드
   async searchKakaoAddress(
     query: string,
@@ -1067,6 +998,472 @@ export const ApiService = {
           durationMs: duration,
           curlCommand: `curl -X GET "https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(keyword)}&size=10"`,
           fetchSnippet: `// 네트워크 오류 발생`
+        }
+      };
+    }
+  },
+
+  // 7. 한국관광공사 국문관광정보 TourAPI 4.0 연동
+  async fetchTourList(
+    areaCode: string = '4', // 4: 대구, 1: 서울, 6: 부산, 39: 제주
+    contentTypeId: string = '', // 12: 관광지, 14: 문화시설, 15: 축제공연, 39: 음식점
+    keyword: string = '',
+    liveKey?: string
+  ): Promise<{ data: TourItem[]; inspect: ApiInspectionData; error?: string }> {
+    const preset = TOUR_PRESETS[areaCode] || TOUR_PRESETS['4'];
+    const startTime = performance.now();
+    const cleanKey = (liveKey || '').trim();
+
+    if (!cleanKey) {
+      const duration = Math.round(performance.now() - startTime);
+      return {
+        data: preset.items,
+        inspect: {
+          title: '한국관광공사 TourAPI 4.0 (프리셋 시뮬레이션 모드)',
+          category: 'tour',
+          endpoint: 'https://apis.data.go.kr/B551011/KorService1/areaBasedList1',
+          method: 'GET',
+          queryParams: { areaCode, contentTypeId: contentTypeId || '전체', keyword: keyword || '없음' },
+          rawResponse: preset.rawResponse,
+          status: 200,
+          durationMs: duration,
+          curlCommand: `curl -X GET "https://apis.data.go.kr/B551011/KorService1/areaBasedList1?serviceKey=YOUR_KEY&areaCode=${areaCode}&MobileOS=ETC&MobileApp=BauhausApiLab&_type=json"`,
+          fetchSnippet: `// 한국관광공사 TourAPI 실시간 호출 스니펫\nconst res = await fetch("https://apis.data.go.kr/B551011/KorService1/areaBasedList1?serviceKey=" + KEY + "&areaCode=${areaCode}&_type=json");`
+        }
+      };
+    }
+
+    try {
+      const decodedKey = decodeURIComponent(cleanKey);
+      const isKeywordSearch = !!keyword.trim();
+      const endpoint = isKeywordSearch
+        ? 'https://apis.data.go.kr/B551011/KorService1/searchKeyword1'
+        : 'https://apis.data.go.kr/B551011/KorService1/areaBasedList1';
+
+      const params = new URLSearchParams({
+        serviceKey: decodedKey,
+        numOfRows: '12',
+        pageNo: '1',
+        MobileOS: 'ETC',
+        MobileApp: 'BauhausApiLab',
+        _type: 'json',
+        listYN: 'Y',
+        arrange: 'A'
+      });
+
+      if (areaCode) params.append('areaCode', areaCode);
+      if (contentTypeId) params.append('contentTypeId', contentTypeId);
+      if (isKeywordSearch) params.append('keyword', keyword.trim());
+
+      const url = `${endpoint}?${params.toString()}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      const duration = Math.round(performance.now() - startTime);
+
+      const itemsRaw = json?.response?.body?.items?.item;
+      const rawList = Array.isArray(itemsRaw) ? itemsRaw : itemsRaw ? [itemsRaw] : [];
+
+      const typeNameMap: Record<string, string> = {
+        '12': '관광지',
+        '14': '문화시설',
+        '15': '축제/행사',
+        '28': '레포츠',
+        '32': '숙박',
+        '38': '쇼핑',
+        '39': '음식점'
+      };
+
+      const parsedItems: TourItem[] = rawList.map((item: any) => ({
+        contentId: String(item.contentid || ''),
+        title: item.title?.replace(/<[^>]*>?/gm, '') || '',
+        contentTypeId: String(item.contenttypeid || ''),
+        contentTypeName: typeNameMap[String(item.contenttypeid)] || '관광명소',
+        address: item.addr1 ? `${item.addr1} ${item.addr2 || ''}`.trim() : '주소 정보 없음',
+        tel: item.tel || '',
+        imageUrl: item.firstimage || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&auto=format&fit=crop&q=80',
+        thumbnailUrl: item.firstimage2 || item.firstimage || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300&auto=format&fit=crop&q=80',
+        mapX: String(item.mapx || '128.6'),
+        mapY: String(item.mapy || '35.8'),
+        areaCode: String(item.areacode || areaCode),
+        areaName: preset.areaName,
+        eventStartDate: item.eventstartdate,
+        eventEndDate: item.eventenddate,
+        overview: item.overview || ''
+      }));
+
+      return {
+        data: parsedItems.length > 0 ? parsedItems : preset.items,
+        inspect: {
+          title: `한국관광공사 TourAPI 4.0 (${isKeywordSearch ? '키워드검색' : '지역기반목록'})`,
+          category: 'tour',
+          endpoint,
+          method: 'GET',
+          queryParams: Object.fromEntries(params.entries()),
+          rawResponse: json,
+          status: res.status,
+          durationMs: duration,
+          curlCommand: `curl -X GET "${url}"`,
+          fetchSnippet: `// 한국관광공사 TourAPI 호출\nconst res = await fetch("${endpoint}?${params.toString()}");\nconst json = await res.json();`
+        }
+      };
+    } catch (err: any) {
+      const duration = Math.round(performance.now() - startTime);
+      return {
+        data: preset.items,
+        error: `실시간 관광공사 API 통신 오류: ${err?.message || '공공데이터포털 서버 연결 실패'}. 프리셋 데이터로 자동 전환되었습니다.`,
+        inspect: {
+          title: '한국관광공사 TourAPI (통신 오류/프리셋 폴백)',
+          category: 'tour',
+          endpoint: 'https://apis.data.go.kr/B551011/KorService1/areaBasedList1',
+          method: 'GET',
+          rawResponse: preset.rawResponse,
+          status: 0,
+          durationMs: duration,
+          curlCommand: `curl -X GET "https://apis.data.go.kr/B551011/KorService1/areaBasedList1?serviceKey=YOUR_KEY"`,
+          fetchSnippet: `// 통신 오류 발생으로 프리셋 반환`
+        }
+      };
+    }
+  },
+
+  // 8. 국립국어원 한국어기초사전 Open API 연동
+  async searchKoreanDict(
+    query: string = '바우하우스',
+    liveKey?: string
+  ): Promise<{ data: DictWordItem[]; inspect: ApiInspectionData; error?: string }> {
+    const searchTarget = query.trim() || '바우하우스';
+    const preset = DICT_PRESETS[searchTarget] || DICT_PRESETS['바우하우스'];
+    const startTime = performance.now();
+    const cleanKey = (liveKey || '').trim();
+
+    if (!cleanKey) {
+      const duration = Math.round(performance.now() - startTime);
+      return {
+        data: preset,
+        inspect: {
+          title: '국립국어원 한국어기초사전 (프리셋 시뮬레이션 모드)',
+          category: 'korean',
+          endpoint: 'https://krdict.korean.go.kr/api/search',
+          method: 'GET',
+          queryParams: { q: searchTarget, part: 'word', sort: 'dict' },
+          rawResponse: { presetCount: preset.length, sampleWord: searchTarget, items: preset },
+          status: 200,
+          durationMs: duration,
+          curlCommand: `curl -X GET "https://krdict.korean.go.kr/api/search?key=YOUR_CERT_KEY&type_search=search&part=word&q=${encodeURIComponent(searchTarget)}&sort=dict"`,
+          fetchSnippet: `// 국립국어원 기초사전 XML 응답 조회 및 DOMParser 파싱 스니펫\nconst res = await fetch("https://krdict.korean.go.kr/api/search?key=" + KEY + "&q=${encodeURIComponent(searchTarget)}");`
+        }
+      };
+    }
+
+    try {
+      const endpoint = 'https://krdict.korean.go.kr/api/search';
+      const params = new URLSearchParams({
+        key: cleanKey,
+        type_search: 'search',
+        part: 'word',
+        q: searchTarget,
+        sort: 'dict',
+        num: '10'
+      });
+      const url = `${endpoint}?${params.toString()}`;
+      const res = await fetch(url);
+      const xmlText = await res.text();
+      const duration = Math.round(performance.now() - startTime);
+
+      // XML 파싱 (브라우저 DOMParser)
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
+      const itemNodes = xmlDoc.querySelectorAll('item');
+
+      const parsedWords: DictWordItem[] = [];
+      itemNodes.forEach((node) => {
+        const targetCode = node.querySelector('target_code')?.textContent || '';
+        const word = node.querySelector('word')?.textContent?.replace(/[-^]/g, '') || '';
+        const part = node.querySelector('pos')?.textContent || '품사 미확인';
+        const origin = node.querySelector('origin')?.textContent || '';
+        const definition = node.querySelector('sense > definition')?.textContent || '정의 내용 없음';
+        const link = node.querySelector('link')?.textContent || `https://krdict.korean.go.kr/kor/dicSearch/search?nation=kor&ParaWordNo=${targetCode}`;
+        
+        const exampleNodes = node.querySelectorAll('sense > example_info > example');
+        const examples: string[] = [];
+        exampleNodes.forEach((ex) => {
+          if (ex.textContent) examples.push(ex.textContent.trim());
+        });
+
+        if (word) {
+          parsedWords.push({
+            targetCode,
+            word,
+            part,
+            origin,
+            definition,
+            pos: part,
+            link,
+            examples: examples.slice(0, 2)
+          });
+        }
+      });
+
+      return {
+        data: parsedWords.length > 0 ? parsedWords : preset,
+        inspect: {
+          title: '국립국어원 한국어기초사전 Open API (LIVE XML)',
+          category: 'korean',
+          endpoint,
+          method: 'GET',
+          queryParams: Object.fromEntries(params.entries()),
+          rawResponse: { xmlSnippet: xmlText.slice(0, 1000) + '...', parsedCount: parsedWords.length },
+          status: res.status,
+          durationMs: duration,
+          curlCommand: `curl -X GET "${url}"`,
+          fetchSnippet: `// 국립국어원 한국어기초사전 실시간 XML 호출\nconst res = await fetch("${url}");\nconst text = await res.text();\nconst xmlDoc = new DOMParser().parseFromString(text, "application/xml");`
+        }
+      };
+    } catch (err: any) {
+      const duration = Math.round(performance.now() - startTime);
+      return {
+        data: preset,
+        error: `국립국어원 통신/CORS 예외 발생: ${err?.message || '사전 서버에 연결할 수 없습니다.'}. 프리셋으로 안전하게 표시합니다.`,
+        inspect: {
+          title: '국립국어원 한국어기초사전 (프리셋 폴백)',
+          category: 'korean',
+          endpoint: 'https://krdict.korean.go.kr/api/search',
+          method: 'GET',
+          rawResponse: { error: String(err), preset },
+          status: 0,
+          durationMs: duration,
+          curlCommand: `curl -X GET "https://krdict.korean.go.kr/api/search?key=YOUR_KEY&q=${encodeURIComponent(searchTarget)}"`,
+          fetchSnippet: `// 네트워크 오류 발생`
+        }
+      };
+    }
+  },
+
+  // 9. 식품의약품안전처 e약은요 의약품개요정보 API 연동
+  async fetchDrugInfo(
+    drugName: string = '타이레놀',
+    liveKey?: string
+  ): Promise<{ data: DrugInfoItem[]; inspect: ApiInspectionData; error?: string }> {
+    const targetName = drugName.trim() || '타이레놀';
+    const presetItem = DRUG_PRESETS[targetName] || DRUG_PRESETS['타이레놀'];
+    const presetList = [presetItem];
+    const startTime = performance.now();
+    const cleanKey = (liveKey || '').trim();
+
+    if (!cleanKey) {
+      const duration = Math.round(performance.now() - startTime);
+      return {
+        data: presetList,
+        inspect: {
+          title: '식약처 e약은요 의약품개요정보 (프리셋 시뮬레이션 모드)',
+          category: 'drug',
+          endpoint: 'https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList',
+          method: 'GET',
+          queryParams: { itemName: targetName, type: 'json' },
+          rawResponse: { body: { items: presetList } },
+          status: 200,
+          durationMs: duration,
+          curlCommand: `curl -X GET "https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList?serviceKey=YOUR_KEY&itemName=${encodeURIComponent(targetName)}&type=json"`,
+          fetchSnippet: `// 식약처 e약은요 의약품 개요정보 조회\nconst res = await fetch("https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList?serviceKey=" + KEY + "&itemName=${encodeURIComponent(targetName)}&type=json");`
+        }
+      };
+    }
+
+    try {
+      const decodedKey = decodeURIComponent(cleanKey);
+      const endpoint = 'https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList';
+      const params = new URLSearchParams({
+        serviceKey: decodedKey,
+        pageNo: '1',
+        numOfRows: '10',
+        itemName: targetName,
+        type: 'json'
+      });
+      const url = `${endpoint}?${params.toString()}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      const duration = Math.round(performance.now() - startTime);
+
+      const itemsRaw = json?.body?.items;
+      const rawList = Array.isArray(itemsRaw) ? itemsRaw : itemsRaw ? [itemsRaw] : [];
+
+      const parsedDrugs: DrugInfoItem[] = rawList.map((item: any) => ({
+        itemSeq: item.itemSeq || '',
+        itemName: item.itemName || targetName,
+        entpName: item.entpName || '제약사 미상',
+        efcyQesitm: item.efcyQesitm || '효능효과 정보 없음',
+        useMethodQesitm: item.useMethodQesitm || '용법용량 정보 없음',
+        atpnWarnQesitm: item.atpnWarnQesitm || '',
+        atpnQesitm: item.atpnQesitm || '',
+        intrcQesitm: item.intrcQesitm || '',
+        seQesitm: item.seQesitm || '',
+        depositMethodQesitm: item.depositMethodQesitm || '',
+        itemImage: item.itemImage || presetItem.itemImage
+      }));
+
+      return {
+        data: parsedDrugs.length > 0 ? parsedDrugs : presetList,
+        inspect: {
+          title: '식약처 e약은요 의약품개요정보 API (LIVE JSON)',
+          category: 'drug',
+          endpoint,
+          method: 'GET',
+          queryParams: Object.fromEntries(params.entries()),
+          rawResponse: json,
+          status: res.status,
+          durationMs: duration,
+          curlCommand: `curl -X GET "${url}"`,
+          fetchSnippet: `// 식약처 e약은요 의약품 조회\nconst res = await fetch("${url}");\nconst json = await res.json();`
+        }
+      };
+    } catch (err: any) {
+      const duration = Math.round(performance.now() - startTime);
+      return {
+        data: presetList,
+        error: `식약처 API 통신 오류: ${err?.message || '공공데이터포털 응답 실패'}. 프리셋 데이터로 대체합니다.`,
+        inspect: {
+          title: '식약처 e약은요 (통신 오류/프리셋 폴백)',
+          category: 'drug',
+          endpoint: 'https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList',
+          method: 'GET',
+          rawResponse: { error: String(err), presetList },
+          status: 0,
+          durationMs: duration,
+          curlCommand: `curl -X GET "https://apis.data.go.kr/1471000/DrbEasyDrugInfoService/getDrbEasyDrugList?serviceKey=YOUR_KEY"`,
+          fetchSnippet: `// 통신 오류 발생`
+        }
+      };
+    }
+  },
+
+  // 10. 국토교통부 아파트 매매 실거래가 자료 API 연동
+  async fetchAptTrades(
+    lawdCd: string = '27230', // 대구 북구
+    dealYmd: string = '202608',
+    liveKey?: string
+  ): Promise<{ data: AptTradeItem[]; inspect: ApiInspectionData; error?: string }> {
+    const preset = REAL_ESTATE_PRESETS[lawdCd] || REAL_ESTATE_PRESETS['27230'];
+    const startTime = performance.now();
+    const cleanKey = (liveKey || '').trim();
+
+    if (!cleanKey) {
+      const duration = Math.round(performance.now() - startTime);
+      return {
+        data: preset.items,
+        inspect: {
+          title: '국토교통부 아파트매매 실거래가 (프리셋 시뮬레이션 모드)',
+          category: 'realestate',
+          endpoint: 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev',
+          method: 'GET',
+          queryParams: { LAWD_CD: lawdCd, DEAL_YMD: dealYmd },
+          rawResponse: preset.rawResponse,
+          status: 200,
+          durationMs: duration,
+          curlCommand: `curl -X GET "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev?serviceKey=YOUR_KEY&LAWD_CD=${lawdCd}&DEAL_YMD=${dealYmd}&pageNo=1&numOfRows=20"`,
+          fetchSnippet: `// 국토교통부 아파트 실거래가 조회\nconst res = await fetch("https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev?serviceKey=" + KEY + "&LAWD_CD=${lawdCd}&DEAL_YMD=${dealYmd}");`
+        }
+      };
+    }
+
+    try {
+      const decodedKey = decodeURIComponent(cleanKey);
+      const endpoint = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
+      const params = new URLSearchParams({
+        serviceKey: decodedKey,
+        pageNo: '1',
+        numOfRows: '25',
+        LAWD_CD: lawdCd,
+        DEAL_YMD: dealYmd,
+        _type: 'json'
+      });
+      const url = `${endpoint}?${params.toString()}`;
+      const res = await fetch(url);
+      const text = await res.text();
+      const duration = Math.round(performance.now() - startTime);
+
+      let parsedTrades: AptTradeItem[] = [];
+      let rawResponseData: any = null;
+
+      // JSON 파싱 시도
+      try {
+        const json = JSON.parse(text);
+        rawResponseData = json;
+        const itemsRaw = json?.response?.body?.items?.item;
+        const rawList = Array.isArray(itemsRaw) ? itemsRaw : itemsRaw ? [itemsRaw] : [];
+        parsedTrades = rawList.map((item: any) => ({
+          aptName: item.aptNm || item.aptSeq || '아파트',
+          dealAmount: Number(String(item.dealAmount || '0').replace(/,/g, '').trim()),
+          dealYear: Number(item.dealYear || dealYmd.slice(0, 4)),
+          dealMonth: Number(item.dealMonth || dealYmd.slice(4, 6)),
+          dealDay: Number(item.dealDay || 1),
+          excluUseAr: Number(item.excluUseAr || 84.9),
+          floor: Number(item.floor || 1),
+          dong: item.umdNm || item.dong || '',
+          buildYear: Number(item.buildYear || 2010),
+          jibun: item.jibun || '',
+          cancelDealType: item.cdealType
+        }));
+      } catch {
+        // XML 폴백 파싱 (국토부 API는 기본적으로 XML을 반환하는 경우가 많음)
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(text, 'application/xml');
+        rawResponseData = { xmlSnippet: text.slice(0, 1200) };
+        const itemNodes = xmlDoc.querySelectorAll('item');
+        itemNodes.forEach((node) => {
+          const aptName = node.querySelector('aptNm')?.textContent || node.querySelector('단지명')?.textContent || '아파트';
+          const dealAmountStr = node.querySelector('dealAmount')?.textContent || node.querySelector('거래금액')?.textContent || '0';
+          const dealYear = Number(node.querySelector('dealYear')?.textContent || node.querySelector('년')?.textContent || dealYmd.slice(0, 4));
+          const dealMonth = Number(node.querySelector('dealMonth')?.textContent || node.querySelector('월')?.textContent || dealYmd.slice(4, 6));
+          const dealDay = Number(node.querySelector('dealDay')?.textContent || node.querySelector('일')?.textContent || 1);
+          const excluUseAr = Number(node.querySelector('excluUseAr')?.textContent || node.querySelector('전용면적')?.textContent || 84.9);
+          const floor = Number(node.querySelector('floor')?.textContent || node.querySelector('층')?.textContent || 1);
+          const dong = node.querySelector('umdNm')?.textContent || node.querySelector('법정동')?.textContent || '';
+          const buildYear = Number(node.querySelector('buildYear')?.textContent || node.querySelector('건축년도')?.textContent || 2010);
+
+          parsedTrades.push({
+            aptName,
+            dealAmount: Number(dealAmountStr.replace(/,/g, '').trim()),
+            dealYear,
+            dealMonth,
+            dealDay,
+            excluUseAr,
+            floor,
+            dong,
+            buildYear
+          });
+        });
+      }
+
+      return {
+        data: parsedTrades.length > 0 ? parsedTrades : preset.items,
+        inspect: {
+          title: '국토교통부 아파트매매 실거래자료 API (LIVE)',
+          category: 'realestate',
+          endpoint,
+          method: 'GET',
+          queryParams: Object.fromEntries(params.entries()),
+          rawResponse: rawResponseData,
+          status: res.status,
+          durationMs: duration,
+          curlCommand: `curl -X GET "${url}"`,
+          fetchSnippet: `// 국토교통부 아파트 실거래가 조회\nconst res = await fetch("${url}");`
+        }
+      };
+    } catch (err: any) {
+      const duration = Math.round(performance.now() - startTime);
+      return {
+        data: preset.items,
+        error: `국토교통부 실거래가 통신 오류: ${err?.message || '응답 수신 실패'}. 프리셋 데이터로 표출합니다.`,
+        inspect: {
+          title: '국토교통부 아파트매매 실거래가 (통신 오류/프리셋 폴백)',
+          category: 'realestate',
+          endpoint: 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev',
+          method: 'GET',
+          rawResponse: { error: String(err), preset },
+          status: 0,
+          durationMs: duration,
+          curlCommand: `curl -X GET "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev?serviceKey=YOUR_KEY"`,
+          fetchSnippet: `// 통신 오류 발생`
         }
       };
     }

@@ -47,9 +47,11 @@ export const KeyModal: React.FC<KeyModalProps> = ({ isOpen, onClose, onKeysUpdat
     { id: 'airKey', label: '에어코리아 서비스키 (공공데이터포털)', placeholder: 'a1rK... 대기오염정보 서비스키', guideKey: 'airKey' },
     { id: 'kasiKey', label: '천문연구원 특일/출몰 서비스키', placeholder: 'kAsI... 천문정보 서비스키', guideKey: 'kasiKey' },
     { id: 'nlKey', label: '국립중앙도서관 오픈API 인증키', placeholder: '국립도서관/정보나루 인증키', guideKey: 'nlKey' },
-    { id: 'webhookUrl', label: 'Discord / Slack Webhook URL', placeholder: 'https://discord.com/api/webhooks/...', guideKey: 'webhookUrl' },
     { id: 'kakaoKey', label: '카카오 REST 키 (도서검색/지도 공통)', placeholder: '카카오 REST API 키 (KakaoAK)', guideKey: 'kakaoKey' },
-    { id: 'geminiKey', label: 'Google Gemini API Key', placeholder: 'AIzaSy... Google AI Studio 키', guideKey: 'geminiKey' },
+    { id: 'tourKey', label: '한국관광공사 TourAPI 4.0 서비스키', placeholder: '공공데이터포털 일반 인증키 (기상청 키와 동일 가능)', guideKey: 'tourKey' },
+    { id: 'koreanKey', label: '국립국어원 한국어기초사전 인증키', placeholder: '국립국어원 오픈API 인증키 (certkey_no)', guideKey: 'koreanKey' },
+    { id: 'drugKey', label: '식품의약품안전처 e약은요 서비스키', placeholder: '공공데이터포털 일반 인증키 (기상청 키와 동일 가능)', guideKey: 'drugKey' },
+    { id: 'realestateKey', label: '국토교통부 아파트실거래가 서비스키', placeholder: '공공데이터포털 일반 인증키 (기상청 키와 동일 가능)', guideKey: 'realestateKey' },
   ];
 
   return (
